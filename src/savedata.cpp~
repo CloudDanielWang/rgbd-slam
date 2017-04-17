@@ -1,0 +1,68 @@
+// C++ 标准库
+#include <stdio.h>  
+#include <iostream> 
+
+
+/************************************************************************/
+/*                                                 saveData                                                         */
+/*                                      保存当前画面的数据                                                  */
+/************************************************************************/
+void saveData(const char* filename, const Mat& mat, int flag = 0)               
+{
+        FILE* fp = fopen(filename,"wt");
+        if (3 != flag)
+        {
+                fprintf(fp,"%d", mat.rows);
+                fprintf(fp, "%d", mat.cols);
+        }
+        switch (flag)
+        {
+        case 0:
+                for(int y = 0; y < mat.rows; y++)
+                {
+                        for(int x = 0; x < mat.cols; x++)
+                        {
+                                short depth = mat.at<short>(y, x);       
+                                fprintf(fp, "%d", depth);
+                        }
+                }
+                break;
+        case 1:
+                for(int y = 0; y < mat.rows; y++)
+                {
+                        for(int x = 0; x < mat.cols; x++)
+                        {
+                                uchar disp = mat.at<uchar>(y,x);
+                                fprintf(fp, "%d", disp);
+                        }
+                }
+                break;
+        case 2:
+                for(int y = 0; y < mat.rows; y++)
+                {
+                        for(int x = 0; x < mat.cols; x++)
+                        {
+                                float disp = mat.at<float>(y,x);
+                                fprintf(fp, "%10.4f", disp);
+                        }
+                }
+                break;
+        case 3:
+                for(int y = 0; y < mat.rows; y++)
+                {
+                        for(int x = 0; x < mat.cols; x++)
+                        {
+                                Vec3f point = mat.at<Vec3f>(y, x);        // Vec3f 是 template 类定义
+                                fprintf(fp, "%f %f %f\n",point(0),point(1),point(2));
+                        }
+                }
+                break;
+        case 4:
+                imwrite(filename, mat);
+                break;
+        default:
+                break;
+        }
+        fclose(fp);
+}
+

@@ -1,0 +1,356 @@
+// OpenCV 库
+#include <opencv2/opencv.hpp>
+#include<vector> 
+#include <opencv2/calib3d/calib3d.hpp>
+//#include <opencv2/core/eigen.hpp>
+
+// C++ 标准库
+#include <stdio.h>  
+#include <iostream> 
+
+// PCL 库
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+#include <pcl/common/transforms.h>
+#include <pcl/visualization/cloud_viewer.h>
+
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+
+
+using namespace cv;
+using namespace std;
+using namespace pcl;
+
+// 定义点云类型
+typedef PointXYZRGBA PointT;
+typedef PointCloud<PointT> pointcloud; 
+
+
+//*****************************开始对进行点云运算********************************************/
+//参考自http://www.cnblogs.com/gaoxiang12/p/4652478.html，修改了三维坐标来源			
+pointcloud::Ptr createPointCloud( cv::Mat& img,cv::Mat& cloudMap, cv::Mat& depth )
+{
+	// 点云变量
+    // 使用智能指针，创建一个空点云。这种指针用完会自动释放。
+    pointcloud::Ptr cloud ( new pointcloud );
+    // 遍历深度图
+    for (int m = 0; m < depth.rows; m++)
+        for (int n=0; n < depth.cols; n++)
+        {
+            PointT p;
+
+            // 计算这个点的空间坐标
+		p.x =double(cloudMap.at<Vec3f>(m,n)[0]);
+		p.y =double(cloudMap.at<Vec3f>(m,n)[1]);
+		p.z =double(cloudMap.at<Vec3f>(m,n)[2]);
+            
+            // 从rgb图像中获取它的颜色
+            // rgb是三通道的BGR格式图，所以按下面的顺序获取颜色
+            p.b = img.ptr<uchar>(m)[n*3];
+            p.g = img.ptr<uchar>(m)[n*3+1];
+            p.r = img.ptr<uchar>(m)[n*3+2];
+
+            // 把p加入到点云中
+            cloud->points.push_back( p );
+        }
+    // 设置并保存点云
+    cloud->height = 1;
+    cloud->width = cloud->points.size();
+    cout<<"point cloud size = "<<cloud->points.size()<<endl;
+    cloud->is_dense = false;
+
+return cloud;
+
+}
+
+//*****************************点云保存成功**********************************************/
+
+//********************矩阵函数定义***********************//
+void m_mult3x3_3x1(float a[3][3],float b[3],float r[3])
+{
+  for(int i=0;i<3;i++)
+  {  
+     r[i]=0;
+     for(int j=0;j<3;j++)   
+        r[i]+=a[i][j]*b[j];
+  }
+}
+
+void m_add3x3(float a[3][3],float b[3][3],float r[3][3])
+{
+  for (int i=0;i<3;i++)
+     for(int j=0;j<3;j++)
+          r[i][j]=a[i][j]+b[i][j];
+}
+
+void m_mult3xPM_L_POINTS_PM_L_POINTSx3(float a[3][1],float b[1][3],float r[3][3])
+{
+ 
+  for(int i=0;i<3;i++)
+  {
+  	for(int j=0;j<3;j++)
+  	{     
+            r[i][j]=0;
+  	   for(int p=0;p<1;p++)   
+           r[i][j]+=a[i][p]*b[p][j];
+  	}
+  }
+}
+
+//********************矩阵函数定义***********************//
+
+
+/************************************************************************/
+/*                                                 ！！！！主函数！！！！                                                     */
+/************************************************************************/
+
+int main()
+{
+	VideoCapture capture(CV_CAP_OPENNI);    //设置视频的来源为OPENNI设备，即Kinect
+
+while(1)
+{
+	double mindepth, maxdepth;
+	const int minDistance = 400; // mm
+        
+	float base = (float)capture.get( CAP_OPENNI_DEPTH_GENERATOR_BASELINE ); // mm
+	float F = (float)capture.get( CAP_OPENNI_DEPTH_GENERATOR_FOCAL_LENGTH ); // pixels 
+	float maxDisparity = base * F / minDistance;
+	
+	vector<DMatch> best_Matche_point;
+	
+    Mat depthMap1,depthMap2;				//存放深度图像
+    Mat depthshow1,depthshow2; 				//存放转化位视差的深度图像
+    Mat img1,img2;		//临时存放连续两帧的图像
+    Mat cloudMap_now,cloudMap_ref;	//存放三维坐标图像
+    
+	pointcloud::Ptr cloud1,cloud2; 		//存放连续两帧的彩色点云；	
+
+    capture.set( CV_CAP_OPENNI_IMAGE_GENERATOR_OUTPUT_MODE, CV_CAP_OPENNI_VGA_30HZ );		//设置Kinect彩色摄像头工作模式
+
+
+/////////////////////////第一帧//////////////////////////////////   
+	capture.grab();       			 //从Kinect捕获一次图像
+              
+	capture.retrieve( img1, CV_CAP_OPENNI_BGR_IMAGE );   //取彩色摄像头信息放与bgrImage1矩阵中
+	
+	namedWindow("图像截取界面", WINDOW_AUTOSIZE);
+	imshow("图像截取界面",img1);		//显示第一帧图像
+	
+	capture.retrieve( depthMap1, CV_CAP_OPENNI_DEPTH_MAP );    //取深度摄像头的信息放入depthMap矩阵中，openCV的openNI接口中，已经将
+													// 深度图像进行的视角的矫正，使得图像与彩色摄像头位置重合
+													//见cap_openni2.cpp videoio_c.h 
+	// imshow("深度图像未转化",depthMap);											
+	depthMap1.convertTo( depthshow1, CV_32FC1, 0.05f);		//将获得的深度图像转变为disparity in pixels格式，且为32位。事实上由深度图像变为了灰度图像
+	//imshow( "深度图像", depthshow1 );						//显示转化后的深度图像
+	
+	
+	capture.retrieve( cloudMap_ref,  CV_CAP_OPENNI_POINT_CLOUD_MAP );		//获取第一帧的三维坐标
+
+	cloud1=createPointCloud(img1,cloudMap_ref,depthMap1);
+	//保存点云数据于文件中	
+	//saveData("cloudMap_ref.txt",cloudMap_ref, 3);
+///////////////////第一帧结束//////////////////////
+
+	cout<<"按任意键截取第二帧图像\n";	
+        waitKey(0);		//等待按键
+
+//////////////////第二帧/////////////////////////
+	capture.grab();				//抓取第二帧图像
+	
+	capture.retrieve( img2, CV_CAP_OPENNI_BGR_IMAGE );
+	imshow("图像截取界面",img2);
+
+	capture.retrieve( depthMap2, CV_CAP_OPENNI_DEPTH_MAP ); 
+	depthMap2.convertTo( depthshow2, CV_32FC1, 0.05f);
+	capture.retrieve( cloudMap_now,  CV_CAP_OPENNI_POINT_CLOUD_MAP );		//获取第二帧的三维坐标
+
+	cloud2=createPointCloud(img1,cloudMap_ref,depthMap1);
+	//保存点云数据于文件中	
+	//saveData("cloudMap_now.txt",cloudMap_now, 3);
+	
+///////////////////第二帧结束//////////////////////
+
+
+
+
+ cout<<"按任意键开始匹配\n";	
+waitKey(0);		//等待按键开始匹配
+
+//*****************************开始对两帧图像进行ORB特征************************************************/
+//ORB特征点匹配    来源于openCV sample 中的ORB匹配示例源码
+//本程序中采用了ORB算法的BruteForce-Hamming(2)实现方法，其余方法给予了注释，需要时去除注释即可。
+
+    vector<String> typeDesc;
+    vector<String> typeAlgoMatch;
+
+    typeDesc.push_back("ORB");      // see http://docs.opencv.org/trunk/de/dbf/classcv_1_1BRISK.html
+
+    typeAlgoMatch.push_back("BruteForce-Hamming(2)");   //经初步测试，该算法得出的匹配点较少而且准确
+
+    vector<double> desMethCmp;
+    Ptr<Feature2D> b;
+
+    // Descriptor loop
+   	vector<String>::iterator itDesc;
+
+    	itDesc = typeDesc.begin();
+        Ptr<DescriptorMatcher> descriptorMatcher;
+        // Match between img1 and img2
+        vector<DMatch> matches;				//将匹配点放于此，数据为keypoint中的索引
+        // keypoint  for img1 and img2
+        vector<KeyPoint> keyImg1, keyImg2;		//存放匹配点的XYZ坐标
+        // Descriptor for img1 and img2
+        Mat descImg1, descImg2;
+        vector<String>::iterator itMatcher = typeAlgoMatch.end();
+
+        b = ORB::create();
+
+
+            // We can detect keypoint with detect method
+            b->detect(img1, keyImg1, Mat());
+            // and compute their descriptors with method  compute
+            b->compute(img1, keyImg1, descImg1);
+            // or detect and compute descriptors in one step
+            b->detectAndCompute(img2, Mat(),keyImg2, descImg2,false);
+            // Match method loop
+            itMatcher = typeAlgoMatch.begin();
+
+                descriptorMatcher = DescriptorMatcher::create(*itMatcher);
+                descriptorMatcher->match(descImg1, descImg2, matches, Mat());
+                    // Keep best matches only to have a nice drawing.
+                    // We sort distance between descriptor matches
+                    Mat index;
+                    int nbMatch=int(matches.size());
+                    Mat tab(nbMatch, 1, CV_32F);
+                    for (int i = 0; i<nbMatch; i++)
+                    {
+                        tab.at<float>(i, 0) = matches[i].distance;
+                    }
+                    sortIdx(tab, index, SORT_EVERY_COLUMN + SORT_ASCENDING);
+                    vector<DMatch> bestMatches;								//将最佳匹配点存放于bestMatches中
+                    for (int i = 0; i<100; i++)
+                    {
+                        bestMatches.push_back(matches[index.at<int>(i, 0)]);
+                    }
+                    Mat result;
+                    drawMatches(img1, keyImg1, img2, keyImg2, bestMatches, result);
+                   // namedWindow("ORB匹配结果", WINDOW_AUTOSIZE);
+                    imshow("ORB匹配结果", result);
+		    cout<<"ORB匹配完成\n";	
+               
+//***************************************匹配结束************************************************/
+
+                    waitKey(0);
+
+//***************************************PnP求解位姿变换************************************************/
+
+	int sum_points=bestMatches.size();
+
+	vector <Point3f> pts_obj;
+	vector <Point2f> pts_img;
+	
+     // 相机内参
+struct CAMERA_INTRINSIC_PARAMETERS 
+{ 
+    double cx, cy, fx, fy, scale;
+};
+	CAMERA_INTRINSIC_PARAMETERS C;
+	C.cx = 325.5;
+	C.cy = 253.5;
+	C.fx = 518.0;
+	C.fy = 519.0;
+	C.scale = 1000.0;
+
+	double camera_matrix_data[3][3] = 
+	{
+		{C.fx, 0, C.cx},
+		{0, C.fy, C.cy},
+		{0, 0, 1}
+	};
+	
+	for  (int i=0;i<sum_points;i++)
+       {	
+
+		int now =bestMatches[i].queryIdx;  
+		int ref =bestMatches[i].trainIdx;       
+		int now_y=keyImg1[now].pt.x;
+		int now_x=keyImg1[now].pt.y;
+		int ref_y=keyImg2[ref].pt.x;
+		int ref_x=keyImg2[ref].pt.y;
+
+		if((cloudMap_now.at<Vec3f>(now_x,now_y)[2]==0.0)||(cloudMap_ref.at<Vec3f>(ref_x,ref_y)[2]==0.0)) 
+			continue;   //若有一点的深度值为0，舍去，进入下一次循环。
+
+		pts_img.push_back( Point2f( keyImg2[ref].pt ) );		//pts_img 为第二帧的像素位置矩阵向量
+
+
+		Point3f p3d (((now_y-C.cx)*cloudMap_now.at<Vec3f>(now_x,now_y)[2])/C.fx,((now_x-C.cy)*cloudMap_now.at<Vec3f>(now_x,now_y)[2])/C.fy,cloudMap_now.at<Vec3f>(now_x,now_y)[2]);
+
+		pts_obj.push_back(p3d);		//pts_obj xy为将图像像素坐标经过对相机参数的处理后得到的坐标，Z轴为真值，单位为米
+		
+	}
+
+	Mat cameraMatrix( 3, 3, CV_64F, camera_matrix_data );
+	Mat rvec, tvec, inliers;
+	solvePnPRansac( pts_obj, pts_img, cameraMatrix, cv::Mat(), rvec, tvec, false, SOLVEPNP_P3P );
+
+	Mat rotate=rvec*180.0/3.1415925;		//姿态旋转矩阵。  顺序为 pitch,yaw,roll  ,将弧度转化为角度
+	Mat transfer=tvec*1000.0;				//位置平移矩阵，单位由米转化为毫米
+	//cout<<"inliers: "<<inliers.rows<<endl;
+	cout<<"R="<<rotate<<endl;
+	cout<<"t="<<transfer<<endl;
+
+//***************************************PnP求解位姿变换结束************************************************/
+
+
+//***************************************点云拼接过程************************************************/
+// 将旋转向量转化为旋转矩阵
+	Mat R;
+	Rodrigues(rvec, R);
+	Eigen::Matrix3d r;
+	cv2eigen(R, r);
+
+// 将平移向量和旋转矩阵转换成变换矩阵
+	Eigen::Isometry3d T = Eigen::Isometry3d::Identity();
+
+	Eigen::AngleAxisd angle(r);
+	cout<<"translation"<<endl;
+	T = angle;
+	T(0,3) = tvec.at<double>(0,0); 
+	T(1,3) = tvec.at<double>(1,0); 
+	T(2,3) = tvec.at<double>(2,0);
+
+	// 合并点云
+	cout<<"combining clouds"<<endl;
+	pointcloud::Ptr output (new pointcloud());
+	transformPointCloud( *cloud1, *output, T.matrix() );
+	*output += *cloud2;
+	pcl::io::savePCDFile("data/result.pcd", *output);
+	cout<<"Final result saved."<<endl;
+
+	pcl::visualization::CloudViewer viewer( "viewer" );
+	viewer.showCloud( output );
+	while( !viewer.wasStopped() )
+	{
+         
+    	}
+
+
+//***************************************点云拼接过程************************************************/
+
+
+    cout << "一轮匹配结束,按键以关闭此轮窗口\n\t";
+
+	waitKey(0);
+
+	destroyWindow("图像截取界面");		
+	destroyWindow("ORB匹配结果");
+
+	cout << "敲击回车键以继续\n\t";
+	while(getchar()!='\n');
+}
+
+    return 0;
+}
