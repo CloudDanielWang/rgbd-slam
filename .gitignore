@@ -27,3 +27,9 @@
 *.exe
 *.out
 *.app
+
+#tempfiles
+*~
+# ignore all files in the build/ directory
+build/
+
