@@ -2,7 +2,7 @@
 	> File Name: src/slamBase.cpp
 	> Author: 王征宇
 	> Implementation of slamBase.h
-	> Created Time: 2017年03月7日
+	> Created Time: 2017年 月 日
  ************************************************************************/
 
 #include "slamBase.h"
@@ -63,13 +63,13 @@ void computeKeyPointsAndDesp( FRAME& frame )
 	double begin=0;
 	double end=0;
 	begin=clock();
-    cv::Ptr<Feature2D> b;
-
-        b = ORB::create();
+    	
+    	cv::Ptr<Feature2D> orb;
+	orb = ORB::create();
             // We can detect keypoint with detect method
-	b->detect(frame.rgb, frame.kp, Mat());
+	orb->detect(frame.rgb, frame.kp, Mat());
             // and compute their descriptors with method  compute
-	b->compute(frame.rgb, frame.kp, frame.desp);
+	orb->compute(frame.rgb, frame.kp, frame.desp);
             // or detect and compute descriptors in one step
 	end=clock();
 	cout<<"ORB detect time\t"<<(end-begin)/1000.0<<endl;
@@ -90,14 +90,11 @@ RESULT_OF_PNP estimateMotion( FRAME& frame1, FRAME& frame2, CAMERA_INTRINSIC_PAR
 	static ParameterReader pd;
 	RESULT_OF_PNP result;
 	
-	vector<String> typeDesc;
 	vector<String> typeAlgoMatch;
-
-	typeDesc.push_back("ORB");      // see http://docs.opencv.org/trunk/de/dbf/classcv_1_1BRISK.html
 	typeAlgoMatch.push_back("BruteForce-Hamming(2)");   //经初步测试，该算法得出的匹配点较少而且准确        
 
 	vector<DMatch> matches;				//将匹配点放于此，数据为keypoint中的索引
-        cv::Ptr<DescriptorMatcher> descriptorMatcher;
+        	cv::Ptr<DescriptorMatcher> descriptorMatcher;
 
 	vector<String>::iterator itMatcher =typeAlgoMatch.begin();
 	 

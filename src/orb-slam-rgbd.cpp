@@ -1,7 +1,12 @@
+/*************************************************************************
+	> File Name: src/slamBase.cpp
+	> Author: 王征宇
+	> Implementation of slamBase.h
+	> Created Time: 2017年0 日
+ ************************************************************************/
+
 
 #include "slamBase.h"
-
-
 //using namespace cv;
 //using namespace pcl;
 using namespace std;
