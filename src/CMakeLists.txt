@@ -22,15 +22,22 @@ FIND_PACKAGE( G2O REQUIRED )
 FIND_PACKAGE( CSparse REQUIRED )
 INCLUDE_DIRECTORIES( ${G2O_INCLUDE_DIR} ${CSPARSE_INCLUDE_DIR} )
 
-
+#添加自定义库
 ADD_LIBRARY( slambase slamBase.cpp )
 TARGET_LINK_LIBRARIES( slambase
+    ${OpenCV_LIBS} 
+    ${PCL_LIBRARIES} )
+
+ADD_LIBRARY( wifi wifi.cpp )
+TARGET_LINK_LIBRARIES( wifi
+	slambase
     ${OpenCV_LIBS} 
     ${PCL_LIBRARIES} )
 
 ADD_EXECUTABLE( kinect_test orb-slam-rgbd.cpp )
 TARGET_LINK_LIBRARIES( kinect_test 
     slambase
+    wifi
     ${OpenCV_LIBS} 
     ${PCL_LIBRARIES} 
      g2o_core g2o_types_slam3d g2o_solver_csparse g2o_stuff g2o_csparse_extension ${CSPARSE_LIBRARY}

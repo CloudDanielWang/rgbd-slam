@@ -14,7 +14,7 @@
 #include <map>
 #include <stdio.h>  
 #include <iostream> 
-
+#include <sstream>
 
 // Eigen
 #include <Eigen/Core>
@@ -43,6 +43,7 @@
 #include <g2o/core/robust_kernel.h>
 #include <g2o/core/robust_kernel_impl.h>
 #include <g2o/core/optimization_algorithm_levenberg.h>
+
 
 using namespace std;
 using namespace cv;
