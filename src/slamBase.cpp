@@ -2,10 +2,11 @@
 	> File Name: src/slamBase.cpp
 	> Author: 王征宇
 	> Implementation of slamBase.h
-	> Created Time: 2017年03月7日
+	> Created Time: 2017年 月 日
  ************************************************************************/
 
 #include "slamBase.h"
+#include <Eigen/Geometry>
 #include<vector>
 //*****************************开始对进行点云运算********************************************/
 //参考自http://www.cnblogs.com/gaoxiang12/p/4652478.html，修改了三维坐标来源			
@@ -63,13 +64,13 @@ void computeKeyPointsAndDesp( FRAME& frame )
 	double begin=0;
 	double end=0;
 	begin=clock();
-    cv::Ptr<Feature2D> b;
-
-        b = ORB::create();
+    	
+    	cv::Ptr<Feature2D> orb;
+	orb = ORB::create();
             // We can detect keypoint with detect method
-	b->detect(frame.rgb, frame.kp, Mat());
+	orb->detect(frame.rgb, frame.kp, Mat());
             // and compute their descriptors with method  compute
-	b->compute(frame.rgb, frame.kp, frame.desp);
+	orb->compute(frame.rgb, frame.kp, frame.desp);
             // or detect and compute descriptors in one step
 	end=clock();
 	cout<<"ORB detect time\t"<<(end-begin)/1000.0<<endl;
@@ -89,20 +90,21 @@ RESULT_OF_PNP estimateMotion( FRAME& frame1, FRAME& frame2, CAMERA_INTRINSIC_PAR
 
 	static ParameterReader pd;
 	RESULT_OF_PNP result;
-	
-	vector<String> typeDesc;
+/*	
 	vector<String> typeAlgoMatch;
-
-	typeDesc.push_back("ORB");      // see http://docs.opencv.org/trunk/de/dbf/classcv_1_1BRISK.html
 	typeAlgoMatch.push_back("BruteForce-Hamming(2)");   //经初步测试，该算法得出的匹配点较少而且准确        
 
 	vector<DMatch> matches;				//将匹配点放于此，数据为keypoint中的索引
-        cv::Ptr<DescriptorMatcher> descriptorMatcher;
+        	cv::Ptr<DescriptorMatcher> descriptorMatcher;
 
 	vector<String>::iterator itMatcher =typeAlgoMatch.begin();
 	 
 	descriptorMatcher = DescriptorMatcher::create(*itMatcher);
 	descriptorMatcher->match(frame1.desp, frame2.desp, matches, Mat());
+*/
+	vector<DMatch> matches;				//将匹配点放于此，数据为keypoint中的索引
+	BFMatcher matcher(NORM_HAMMING);
+	matcher.match(frame1.desp, frame2.desp, matches);
 
 	end=clock();
 	cout<<"ORB match time\t"<<(end-begin)/1000.0<<endl;
@@ -211,7 +213,7 @@ if(openORBwindow)
     cv::Mat cameraMatrix( 3, 3, CV_64F, camera_matrix_data );
     cv::Mat rvec, tvec;
     // 求解pnp
-    cv::solvePnPRansac( pts_obj, pts_img, cameraMatrix, cv::Mat(), rvec, tvec, false, SOLVEPNP_P3P );
+    cv::solvePnPRansac( pts_obj, pts_img, cameraMatrix, cv::Mat(), rvec, tvec, false, SOLVEPNP_EPNP );
 
     result.rvec = rvec;
     result.tvec = tvec;
@@ -233,6 +235,8 @@ Eigen::Isometry3d cvMat2Eigen( cv::Mat& rvec, cv::Mat& tvec )
         for ( int j=0; j<3; j++ ) 
             r(i,j) = R.at<double>(i,j);
   
+     Eigen::Vector3d euler_angles=r.eulerAngles(0,1,2);
+     cout<<"roll pitch yaw = "<<euler_angles.transpose()<<endl;
     // 将平移向量和旋转矩阵转换成变换矩阵
     Eigen::Isometry3d T = Eigen::Isometry3d::Identity();
 
