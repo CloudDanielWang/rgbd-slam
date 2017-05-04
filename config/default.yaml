@@ -2,10 +2,10 @@
 
 # camera intrinsics
 # camera
-camera.cx=318.1;
-camera.cy=258.9;
-camera.fx=520.0;
-camera.fy=520.0;
+camera.cx: 318.1
+camera.cy: 258.9
+camera.fx: 520.0
+camera.fy: 520.0
 
 camera.depth_scale: 1000
 

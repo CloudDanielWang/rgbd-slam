@@ -21,6 +21,15 @@ using Sophus::SE3;
 using cv::Mat;
 using namespace cv;
 
+// PCL
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+#include <pcl/common/transforms.h>
+#include <pcl/visualization/cloud_viewer.h>
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/passthrough.h>
+using namespace pcl;
+
 // std 
 #include <vector>
 #include <list>

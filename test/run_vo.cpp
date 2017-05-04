@@ -8,6 +8,7 @@
 
 #include "acrbslam/config.h"
 #include "acrbslam/visual_odometry.h"
+#include "acrbslam/cloudmap.h"
 
 
 
@@ -33,10 +34,13 @@ int main ( int argc, char** argv )
     cv::Affine3d cam_pose = cv::viz::makeCameraPose ( cam_pos, cam_focal_point, cam_y_dir );
     vis.setViewerPose ( cam_pose );
 
-    world_coor.setRenderingProperty ( cv::viz::LINE_WIDTH, 2.0 );
-    camera_coor.setRenderingProperty ( cv::viz::LINE_WIDTH, 1.0 );
+    world_coor.setRenderingProperty ( cv::viz::LINE_WIDTH, 3.0 );
+    camera_coor.setRenderingProperty ( cv::viz::LINE_WIDTH, 2.0 );
     vis.showWidget ( "World", world_coor );
     vis.showWidget ( "Camera", camera_coor );
+
+     pointCloud::Ptr pointCloud_all( new pointCloud ); //存放所有点云
+     pcl::visualization::CloudViewer viewer("cloudmap viewer");
 
     for ( int i=0; i<1000; i++ )
     {
@@ -47,13 +51,12 @@ int main ( int argc, char** argv )
         Mat depth ;
         capture.retrieve( color, CV_CAP_OPENNI_BGR_IMAGE );     
         capture.retrieve( depth, CV_CAP_OPENNI_DEPTH_MAP ); 
-        if ( color.data==nullptr || depth.data==nullptr )
-            break;
+
         acrbslam::Frame::Ptr pFrame = acrbslam::Frame::createFrame();
         pFrame->camera_ = camera;
         pFrame->color_ = color;
         pFrame->depth_ = depth;
-        //pFrame->time_stamp_ = rgb_times[i];
+
 
         boost::timer timer;
         vo->addFrame ( pFrame );
@@ -61,6 +64,12 @@ int main ( int argc, char** argv )
 
         if ( vo->state_ == acrbslam::VisualOdometry::LOST )
             break;
+
+        //draw cloudmap
+        pointCloud_all=createPointCloud(pFrame, pointCloud_all)；
+        ////////
+
+
         SE3 Twc = pFrame->T_c_w_.inverse();
 
         // show the map and the camera pose

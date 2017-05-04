@@ -21,10 +21,17 @@ include_directories( ${Sophus_INCLUDE_DIRS} )
 # G2O
 find_package( G2O REQUIRED )
 include_directories( ${G2O_INCLUDE_DIRS} )
+# pcl 
+FIND_PACKAGE( PCL REQUIRED COMPONENTS common io visualization filters )
+ADD_DEFINITIONS( ${PCL_DEFINITIONS} )
+INCLUDE_DIRECTORIES( ${PCL_INCLUDE_DIRS}  )
+LINK_LIBRARIES( ${PCL_LIBRARY_DIRS} )
+
 
 set( THIRD_PARTY_LIBS 
     ${OpenCV_LIBS}
     ${Sophus_LIBRARIES}
+    ${PCL_LIBRARIES}
     g2o_core g2o_stuff g2o_types_sba
 )
 ############### dependencies ######################

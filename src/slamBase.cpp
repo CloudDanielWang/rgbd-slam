@@ -268,7 +268,7 @@ pointcloud::Ptr joinPointCloud( pointcloud::Ptr original, FRAME& newFrame, Eigen
     double gridsize = atof( pd.getData("voxel_grid").c_str() );
     voxel.setLeafSize( gridsize, gridsize, gridsize );
     voxel.setInputCloud( newCloud );
-    pointcloud::Ptr tmp( new pointcloud() );
+    pointcloud::Ptr tmp( new pointCloud() );
     voxel.filter( *tmp );
     return tmp;
 }
