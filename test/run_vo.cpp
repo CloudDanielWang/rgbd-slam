@@ -66,7 +66,9 @@ int main ( int argc, char** argv )
             break;
 
         //draw cloudmap
-        pointCloud_all=createPointCloud(pFrame, pointCloud_all)；
+        pointCloud_all=createPointCloud(pFrame, pointCloud_all);
+        viewer.showCloud( pointCloud_all );
+
         ////////
 
 

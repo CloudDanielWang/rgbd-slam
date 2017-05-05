@@ -28,7 +28,11 @@ using namespace cv;
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/passthrough.h>
+#include <pcl/visualization/pcl_visualizer.h>
+//#include <pcl/filters/statistical_outlier_removal.h>		//包含该文件后会导致编译出错，原因未知
+
 using namespace pcl;
+
 
 // std 
 #include <vector>
