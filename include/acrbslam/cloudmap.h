@@ -10,6 +10,7 @@
     typedef pcl::PointCloud<PointT> pointCloud;
 
     pointCloud::Ptr createPointCloud( acrbslam::Frame::Ptr frame, pointCloud::Ptr orginal_cloud );
+    //pointcloud::Ptr joinPointCloud( pointcloud::Ptr original, acrbslam::FRAME& newFrame, Eigen::Isometry3d T ) ;
 
 
 

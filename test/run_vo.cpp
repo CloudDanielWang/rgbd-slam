@@ -27,7 +27,7 @@ int main ( int argc, char** argv )
 
     VideoCapture capture(CV_CAP_OPENNI);    //设置视频的来源为OPENNI设备，即Kinect
     
-    // visualization
+ /*   // visualization
     cv::viz::Viz3d vis ( "Visual Odometry" );
     cv::viz::WCoordinateSystem world_coor ( 1.0 ), camera_coor ( 0.5 );
     cv::Point3d cam_pos ( 0, -1.0, -1.0 ), cam_focal_point ( 0,0,0 ), cam_y_dir ( 0,1,0 );
@@ -38,11 +38,11 @@ int main ( int argc, char** argv )
     camera_coor.setRenderingProperty ( cv::viz::LINE_WIDTH, 2.0 );
     vis.showWidget ( "World", world_coor );
     vis.showWidget ( "Camera", camera_coor );
-
+*/
      pointCloud::Ptr pointCloud_all( new pointCloud ); //存放所有点云
      pcl::visualization::CloudViewer viewer("cloudmap viewer");
 
-    for ( int i=0; i<1000; i++ )
+    for ( int i=0; i<200; i++ )
     {
         capture.grab();                 
   
@@ -67,11 +67,11 @@ int main ( int argc, char** argv )
 
         //draw cloudmap
         pointCloud_all=createPointCloud(pFrame, pointCloud_all);
-        viewer.showCloud( pointCloud_all );
+       
 
         ////////
 
-
+/*
         SE3 Twc = pFrame->T_c_w_.inverse();
 
         // show the map and the camera pose
@@ -85,7 +85,7 @@ int main ( int argc, char** argv )
                 Twc.translation() ( 0,0 ), Twc.translation() ( 1,0 ), Twc.translation() ( 2,0 )
             )
         );
-
+*/
         Mat img_show = color.clone();
         for ( auto& pt:vo->map_->map_points_ )
         {
@@ -96,10 +96,23 @@ int main ( int argc, char** argv )
 
         cv::imshow ( "image", img_show );
         cv::waitKey ( 1 );
-        vis.setWidgetPose ( "Camera", M );
-        vis.spinOnce ( 1, false );
+        // viewer.showCloud( pointCloud_all );
+//        vis.setWidgetPose ( "Camera", M );
+ //       vis.spinOnce ( 1, false );
         cout<<endl;
-    }
+    }   
+            // voxel filter 
+    pcl::VoxelGrid<pcl::PointXYZRGB> voxel_filter; 
+    voxel_filter.setLeafSize( 1, 1, 1 );       // resolution 
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr tmp ( new pcl::PointCloud<pcl::PointXYZRGB> );
+    voxel_filter.setInputCloud( pointCloud_all );
+    voxel_filter.filter( *tmp );
+    tmp->swap( *pointCloud_all );
+    
+    cout<<"滤波之后，点云共有"<<pointCloud_all->size()<<"个点."<<endl;
+         pcl::io::savePCDFileBinary( "data/result.pcd", *pointCloud_all );
+         // while( !viewer.wasStopped() )
+         //{}
 
     return 0;
 }
