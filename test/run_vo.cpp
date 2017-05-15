@@ -40,7 +40,7 @@ int main ( int argc, char** argv )
     vis.showWidget ( "Camera", camera_coor );
 */
      pointCloud::Ptr pointCloud_all( new pointCloud ); //存放所有点云
-     pcl::visualization::CloudViewer viewer("cloudmap viewer");
+     //pcl::visualization::CloudViewer viewer("cloudmap viewer");
 
     for ( int i=0; i<200; i++ )
     {
@@ -101,13 +101,6 @@ int main ( int argc, char** argv )
  //       vis.spinOnce ( 1, false );
         cout<<endl;
     }   
-            // voxel filter 
-    pcl::VoxelGrid<pcl::PointXYZRGB> voxel_filter; 
-    voxel_filter.setLeafSize( 1, 1, 1 );       // resolution 
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr tmp ( new pcl::PointCloud<pcl::PointXYZRGB> );
-    voxel_filter.setInputCloud( pointCloud_all );
-    voxel_filter.filter( *tmp );
-    tmp->swap( *pointCloud_all );
     
     cout<<"滤波之后，点云共有"<<pointCloud_all->size()<<"个点."<<endl;
          pcl::io::savePCDFileBinary( "data/result.pcd", *pointCloud_all );
