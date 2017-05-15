@@ -23,6 +23,7 @@ using namespace cv;
 
 // PCL
 #include <pcl/io/pcd_io.h>
+#include <pcl/io/ply_io.h>
 #include <pcl/point_types.h>
 #include <pcl/common/transforms.h>
 #include <pcl/visualization/cloud_viewer.h>
@@ -44,6 +45,42 @@ using namespace pcl;
 #include <set>
 #include <unordered_map>
 #include <map>
+
+
+
+///
+///
+#include <stdio.h>      /*标准输入输出定义*/
+#include <iostream>
+#include <unistd.h>     /*Unix 标准函数定义*/
+#include <sys/types.h> 
+#include <sys/stat.h>  
+#include <fcntl.h>      /*文件控制定义*/
+#include <termios.h>    /*POSIX 终端控制定义*/
+#include <errno.h>      /*错误号定义*/
+#include <pthread.h>
+#include <string.h> //和strings.h有什么区别
+#include <math.h>
+#include <linux/i2c-dev.h>  
+#include <sys/ioctl.h> 
+#include <signal.h>
+#include <sys/time.h>
+#include <stdlib.h>
+#include <netinet/in.h>
+#include <stddef.h>  
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <stdint.h>
+#include <getopt.h>
+#include <fcntl.h>
+#include <linux/types.h>
+#include <linux/spi/spidev.h>
+#include "stddef.h"
+#include <malloc.h>
+///
+
+
 
 using namespace std; 
 

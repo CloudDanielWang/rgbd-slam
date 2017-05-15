@@ -1,11 +1,7 @@
-#include "wifi.h"
-#include "slamBase.h"
+#include "acrbslam/wifi.h"
+#include "acrbslam/frame.h"
 
-#include <string> 
-
-using namespace std;
-
-void wifi_comu (SLAM_DATA *slamdata)
+void wifi_comu (acrbslam::Frame  *frame)
 {
 /*
 	static ParameterReader wifipara;
@@ -14,9 +10,6 @@ void wifi_comu (SLAM_DATA *slamdata)
 	int REMOTEPORT  =   atoi( wifipara.getData( "REMOTEPORT" ).c_str() );
 	char REMOTEIP  =   wifipara.getData( "REMOTEIP" );
 */
-
-	struct FRAME *frame=&(slamdata->FRAME);
-	struct RESULT_OF_PNP *pnpdata=&(slamdata->RESULT_OF_PNP);	
 
 	sigset_t  mask;    //主线程中需要把所有的信号屏蔽掉  
 	int signo;         //用来屏蔽信号
@@ -57,9 +50,12 @@ void wifi_comu (SLAM_DATA *slamdata)
 		sigwait(&mask,&signo);
 
 
-		Acrb_Wifi_Data.cloudMap= frame->cloudMap;
-		Acrb_Wifi_Data.rvec=pnpdata->rvec;
-		Acrb_Wifi_Data.tvec=pnpdata->tvec;
+                	//Acrb_Wifi_Data.x = -pointWorld[0];
+                	//Acrb_Wifi_Data.y = -pointWorld[1];
+                	//Acrb_Wifi_Data.z = pointWorld[2];
+                	Acrb_Wifi_Data.b = frame->color_.data[ 1*frame->color_.step+1*frame->color_.channels() ];	//取的第一个像素点的RGB值
+                	Acrb_Wifi_Data.g = frame->color_.data[ 1*frame->color_.step+1*frame->color_.channels()+1 ];
+                	Acrb_Wifi_Data.r = frame->color_.data[ 1*frame->color_.step+1*frame->color_.channels()+2 ];
 
 
 		if(sendto(Local_sock,(char *)(&Acrb_Wifi_Data),sizeof(Acrb_Wifi_Data),0,(struct sockaddr*)&Remote_Addr,sizeof(Remote_Addr))==-1)	
