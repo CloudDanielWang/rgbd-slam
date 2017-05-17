@@ -213,8 +213,16 @@ void VisualOdometry::poseEstimationPnP()
         pose->estimate().rotation(),
         pose->estimate().translation()
     );
+        
+    Eigen::Isometry3d transfomation = pose->estimate(); 
+    Eigen::Matrix3d rotation_estimate = transfomation.rotation();
+    Eigen::Vector3d translation_estimate=transfomation.translation();
     
-    cout<<"T_c_w_estimated_: "<<endl<<T_c_w_estimated_.matrix()<<endl;
+     cout<<"rotation_estimate:\n "<<rotation_estimate.eulerAngles(2,0,1)*180/3.141592653<<endl;     //roll pitch raw
+     cout<<"translation_estimate:\n "<<translation_estimate<<endl;
+
+
+    //cout<<"T_c_w_estimated_: "<<endl<<T_c_w_estimated_.matrix()<<endl;
 }
 
 //位姿计算结果检测函数
