@@ -13,7 +13,7 @@ pointCloud::Ptr createPointCloud( acrbslam::Frame::Ptr frame ,pointCloud::Ptr or
         {
                 unsigned int d =frame->depth_.ptr<unsigned short> (v)[u]; // 深度值
                 if ( d==0 ) continue; // 为0表示没有测量到
-                if ( d >= 6000 ) continue; // 深度太大时不稳定，去掉
+                if ( d >= 7000 ) continue; // 深度太大时不稳定，去掉
                 
                 Vector3d pointWorld ;
                 Vector2d pixel( u, v );
