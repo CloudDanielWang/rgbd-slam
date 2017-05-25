@@ -13,7 +13,7 @@ void* wifi_thread(void *arg)
 {	
 	wifi_comu wifi_comu_;
 	wifi_comu_.wifi_init();
-	cv::Mat rgb=imread("../data/beauty.jpg");
+	cv::Mat rgb=imread("./data/beauty.jpg");
 	cv::imshow ( "image", rgb );
 	cv::waitKey ( 0 );
 	while(1)
@@ -38,7 +38,8 @@ void* wifi_thread(void *arg)
 
 int main(int argc, char **argv)
 {
-
+	acrbslam::Config::setParameterFile ( argv[1] );
+	
 	pthread_t   thread_wifi;
 	void *retval_wifi;
 	int ret_wifi=pthread_create(&thread_wifi,NULL, acrbslam::wifi_thread, NULL);

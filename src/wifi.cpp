@@ -1,13 +1,35 @@
 #include "acrbslam/wifi.h"
-#include "acrbslam/frame.h"
+
 
 namespace acrbslam
 {
 
 
+//wifi 参数读取函数
+wifi_comu::wifi_comu()
+:send_time(0)
+{	
+	cout<<"666"<<endl;
+	LOCALPORT    	= Config::get<int> ( "LOCALPORT" );
+	REMOTEPORT	= Config::get<int> ( "REMOTEPORT" );
+
+	string  localIP=Config::get<string> ( "LOCALIP" );
+	LOCALIP=localIP.c_str();
+	string  remoteIP=(Config::get<string> ( "REMOTEIP" ));
+	REMOTEIP=remoteIP.c_str();
+}
+
+//wifi释放函数
+wifi_comu::~wifi_comu()
+{
+
+}
+
+
 //wifi初始化函数
 void wifi_comu::wifi_init()
-{
+{	
+	//wifi_comu_para();
 	if((pc_sock=socket(AF_INET,SOCK_DGRAM,0))<0) //建立socket
 	{
 		printf("socket error\n");
