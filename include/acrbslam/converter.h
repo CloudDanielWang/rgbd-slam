@@ -23,7 +23,7 @@ public:
 	char blue_mat[307200];
 	unsigned short int depth_mat[307200];
 
-	char *pic_red,*pic_green,*pic_blue,*pic_depth;
+	//char *pic_red,*pic_green,*pic_blue,*pic_depth;
 };
 
 

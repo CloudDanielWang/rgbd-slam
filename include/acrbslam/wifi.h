@@ -29,14 +29,17 @@ namespace acrbslam
 		float y;
 		float z;
 
-		float r;
-		float g;
-		float b;
+		char *red;
+		char *green;
+		char *blue;
+		char *depth;
 
-		float depth;
+		Mat rgb_mat;
+		Mat depth_mat;
 
 
-	}ACRB_WIFI_DATA;
+
+	}ACRB_WIFI_DATA_;
 
 
 
@@ -58,13 +61,17 @@ class wifi_comu:public Frame, public Converter			//继承了frame类
 		struct sockaddr_in Remote_Addr;
 		int pc_sock;
 
-	//protected:
+	protected:
 		//parameters
 		int LOCALPORT;		//本地端口
 		int REMOTEPORT;	//远端端口
 
 		const char* LOCALIP;	//本地IP
 		const char* REMOTEIP;	//远端IP
+
+	public:
+		//data
+
 };
 
 
