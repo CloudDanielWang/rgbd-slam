@@ -45,6 +45,8 @@ public:
     double key_frame_min_rot;   // minimal rotation of two key-frames
     double key_frame_min_trans; // minimal translation of two key-frames
     double  map_point_erase_ratio_; // remove map point ratio
+
+    int scan_frame_num_;
     
 public: // functions 
     VisualOdometry();
