@@ -21,6 +21,9 @@ VisualOdometry::VisualOdometry() :
     key_frame_min_rot   = Config::get<double> ( "keyframe_rotation" );
     key_frame_min_trans = Config::get<double> ( "keyframe_translation" );
     map_point_erase_ratio_ = Config::get<double> ( "map_point_erase_ratio" );
+
+   scan_frame_num_  =Config::get<int>("scan_frame_num");
+
     orb_ = cv::ORB::create ( num_of_features_, scale_factor_, level_pyramid_ );
 }
 
