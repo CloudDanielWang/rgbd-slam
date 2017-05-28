@@ -31,6 +31,26 @@ void Converter::rgbmat2rgbchar(Converter converter, Mat rgbmat, char **red,char 
 	*blue=converter.blue_mat;
 }
 
+void Converter::rgbchar2rgbmat(Converter converter, Mat rgbmat, char red[],char green[],char blue[])
+{	
+
+	int x,y,temp;
+	for( y = 0; y < rgbmat.rows; y++ ) 
+	{ 
+		temp=y*rgbmat.cols;
+
+		for( x = 0; x < rgbmat.cols; x++ ) 
+		{
+			rgbmat.at<Vec3b>(y,x)[0]=red[temp+x];
+			rgbmat.at<Vec3b>(y,x)[1]=green[temp+x];
+			rgbmat.at<Vec3b>(y,x)[2]=blue[temp+x];
+		}
+	}
+
+}
+
+
+
 void Converter::mat2char(Converter converter, Mat mat_, char** char_)
 {	
 	int x,y,temp;
@@ -45,6 +65,22 @@ void Converter::mat2char(Converter converter, Mat mat_, char** char_)
 	}
 
 	*char_=(char *)converter.depth_mat;	
+}
+
+
+void Converter::char2mat(Converter converter, Mat mat_, char** char_)
+{	
+	int x,y,temp;
+	for( y = 0; y < mat_.rows; y++ ) 
+	{ 
+		temp=y*mat_.cols;
+
+		for( x = 0; x < mat_.cols; x++ ) 
+		{
+			mat_.at<ushort>(y,x)=converter.depth_mat[temp+x];
+		}
+	}
+
 }
 
 

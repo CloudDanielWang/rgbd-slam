@@ -9,7 +9,6 @@ namespace acrbslam
 wifi_comu::wifi_comu()
 :send_time(0)
 {	
-	cout<<"666"<<endl;
 	LOCALPORT    	= Config::get<int> ( "LOCALPORT" );
 	REMOTEPORT	= Config::get<int> ( "REMOTEPORT" );
 
@@ -40,9 +39,10 @@ void wifi_comu::wifi_init()
 	Local_Addr.sin_addr.s_addr = inet_addr(LOCALIP);
 
 	if(bind(pc_sock,(struct sockaddr *)&Local_Addr,sizeof(Local_Addr))<0)
-	{
+	{	
 		printf("bind error\n");
 		perror("wifi_bind");
+		return ;
 	}
 	Remote_Addr.sin_family = AF_INET;
 	Remote_Addr.sin_port = htons(REMOTEPORT);
@@ -60,7 +60,17 @@ void wifi_comu::send_data(char *data,unsigned int num)
 		
 }
 
+//wifi 接收数据函数
+int wifi_comu::receive_data(char *data, long unsigned int num)
+{
+	long unsigned int data_num=num;
+	int temp_data;
+	char *wifi_data=data;
+	socklen_t addr_len=sizeof(Remote_Addr);
 
+	temp_data=recvfrom(pc_sock,wifi_data,data_num,0,(struct sockaddr*)&Remote_Addr,&addr_len);
+	return temp_data;
+}
 
 
 
