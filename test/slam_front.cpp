@@ -5,6 +5,7 @@
 #include "acrbslam/visual_odometry.h"
 #include "acrbslam/cloudmap.h"
 #include "acrbslam/wifi.h"
+#include "acrbslam/data.h"
 
 namespace acrbslam
 {
@@ -18,6 +19,8 @@ void* vo_thread(void *arg)
     acrbslam::VisualOdometry::Ptr vo ( new acrbslam::VisualOdometry );
 
     acrbslam::Camera::Ptr camera ( new acrbslam::Camera );
+
+    acrbslam::Data data;    //数据存储类
 
     //openni 输入
     //VideoCapture capture(CV_CAP_OPENNI);    //设置视频的来源为OPENNI设备，即Kinect
@@ -87,6 +90,9 @@ void* vo_thread(void *arg)
 
         boost::timer timer;
         vo->addFrame ( pFrame );
+
+        Converter converter;
+        converter.se32char(pFrame->T_c_w_, &data.rotation_char, &data.translation_char);
         cout<<"VO costs time: "<<timer.elapsed() <<endl;
 
         if ( vo->state_ == acrbslam::VisualOdometry::LOST )
@@ -111,7 +117,6 @@ void* wifi_thread(void *arg)
         wifi_comu_.send_data(ACRB_WIFI_DATA.blue,307200);
         wifi_comu_.send_data(ACRB_WIFI_DATA.depth,307200);
 
-        printf("OK\n");
         
     }
 }

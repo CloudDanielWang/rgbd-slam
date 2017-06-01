@@ -83,6 +83,35 @@ void Converter::char2mat(Converter converter, Mat mat_, char** char_)
 
 }
 
+void Converter::se32char(Sophus::SE3 pose, char **rotation_char, char **translation_char)
+{
+	Eigen::Matrix4d transfomation = pose.matrix();
+	char rotation_char_[9];
+	char translation_char_[3];
+
+	rotation_char_[0]=transfomation(0,0);
+	rotation_char_[1]=transfomation(0,1);
+	rotation_char_[2]=transfomation(0,2);
+	rotation_char_[3]=transfomation(1,0);
+	rotation_char_[4]=transfomation(1,1);
+	rotation_char_[5]=transfomation(1,2);
+	rotation_char_[6]=transfomation(2,0);
+	rotation_char_[7]=transfomation(2,1);
+	rotation_char_[8]=transfomation(2,2);
+
+	translation_char_[0]=transfomation(0,3);
+	translation_char_[1]=transfomation(1,3);
+	translation_char_[2]=transfomation(2,3);
+
+	*rotation_char=(char *)rotation_char_;
+	*translation_char=(char *)translation_char_;
+
+	return;
+
+}
+
+
+
 
 
 }//namespace acrbslam

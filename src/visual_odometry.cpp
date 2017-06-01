@@ -62,6 +62,7 @@ bool VisualOdometry::addFrame ( Frame::Ptr frame )
             if ( checkKeyFrame() == true ) // is a key-frame
             {
                 addKeyFrame();
+                //saveKeyFrame();          //添加用于关键帧数据的存储，便于传输
             }
         }
         else // bad estimation due to various reasons

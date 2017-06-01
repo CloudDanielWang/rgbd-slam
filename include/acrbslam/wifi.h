@@ -8,13 +8,6 @@
 #include "acrbslam/converter.h"
 
 
-//后期WIFI调通后再弄清楚获取参数的方法
-//#define LOCALPORT 6000          //本地IP及端口
-//#define LOCALIP "192.168.1.105"
-
-//#define REMOTEPORT 5000         //远程IP及端口
-//#define REMOTEIP "192.168.1.103"
-
 namespace acrbslam
 {
 

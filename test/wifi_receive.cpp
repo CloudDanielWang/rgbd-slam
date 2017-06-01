@@ -43,7 +43,6 @@ void *wifi_recv(void *arg)
 
 	printf("OK\n");
 */
-
 	while(1)
 	{	
 

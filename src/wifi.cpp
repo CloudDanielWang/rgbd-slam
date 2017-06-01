@@ -28,7 +28,6 @@ wifi_comu::~wifi_comu()
 //wifi初始化函数
 void wifi_comu::wifi_init()
 {	
-	//wifi_comu_para();
 	if((pc_sock=socket(AF_INET,SOCK_DGRAM,0))<0) //建立socket
 	{
 		printf("socket error\n");
@@ -55,8 +54,8 @@ void wifi_comu::send_data(char *data,unsigned int num)
 	unsigned int data_num=num;
 	char *wifi_data=data;
 
-	if(sendto(pc_sock,wifi_data,data_num,0,(struct sockaddr*)&Remote_Addr,sizeof(Remote_Addr))==-1)
-	printf("wifi_send_error\n");	
+	if(sendto(pc_sock,wifi_data,data_num,0,(struct sockaddr*)&Remote_Addr,sizeof(Remote_Addr))==-1){};
+	//printf("wifi_send_error\n");	
 		
 }
 

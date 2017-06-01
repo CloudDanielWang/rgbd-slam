@@ -63,6 +63,7 @@ protected:
     void optimizeMap();
     
     void addKeyFrame();
+    void saveKeyFrame();    //添加用于关键帧数据的存储，便于传输
     void addMapPoints();
     bool checkEstimatedPose(); 
     bool checkKeyFrame();
