@@ -71,6 +71,47 @@ void wifi_comu::wifi_init_uav()
 	}
 
 }
+
+//wif函数接收端初始化
+void wifi_comu::wifi_init_pc()
+{
+	if (uav_sock=socket(AF_INET,SOCK_STREAM,0)<0)
+	{
+		printf("socket error\n");
+	}
+
+	Local_Addr.sin_family = AF_INET;
+	Local_Addr.sin_port = htons(LOCALPORT);
+	Local_Addr.sin_addr.s_addr = inet_addr(LOCALIP);
+
+	if(bind(uav_sock, (struct sockaddr *)&Local_Addr,sizeof(Local_Addr))<0)
+	{	
+		printf("bind error\n");
+		perror("wifi_bind");
+		return ;
+	}	
+
+	if(listen(uav_sock,5)==-1)
+	{
+		printf("listen error\n");
+		return;
+	}
+
+	socklen_t addr_len=sizeof(Remote_Addr);
+
+
+	cout<<"Wait.."<<endl;
+	do
+	{
+		pc_sock=accept(uav_sock,(struct sockaddr*)&Remote_Addr,&addr_len);
+	}while(pc_sock<0);
+
+
+}
+
+
+
+//
 //wifi 发送数据函数
 void wifi_comu::send_data(char *data,unsigned int num)
 {
@@ -103,6 +144,25 @@ int wifi_comu::receive_data(char *data, long unsigned int num)
 	return temp_data;
 }
 
+//wifi pc端接收新函数
+void wifi_comu::receive_data_pc(Mat frame)
+{
+	char receive_data[307200];
+	int bytes=0;
+
+	for (int i=0; i<307200; i+=bytes)
+	{
+		if((bytes=recv(pc_sock,receive_data+i, 307200-i, 0 ))==-1)
+		{
+			cout<<"Fault"<<endl;
+			exit(-1);
+
+		}
+	}
+	Mat temp_mat(Size(640,480), CV_8UC1, receive_data);
+	frame=temp_mat;
+	return;
+}
 
 
 

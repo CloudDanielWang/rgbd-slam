@@ -18,7 +18,7 @@ void *wifi_recv(void *arg)
 	//socklen_t addr_len=sizeof(Remote_Addr);
 
 	wifi_comu wifi_comu_;
-    	wifi_comu_.wifi_init();
+    	wifi_comu_.wifi_init_pc();
 
 
 	char red[307200];
@@ -30,25 +30,15 @@ void *wifi_recv(void *arg)
 
 	Mat picture=Mat::zeros(480,640,CV_8UC3);
 
-/*
-	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cur_point (new pcl::PointCloud<pcl::PointXYZRGB>);
-	pcl::PointCloud<pcl::PointXYZRGB>& cloud_cur = *cloud_cur_point;
-	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cur_trans (new pcl::PointCloud<pcl::PointXYZRGB>);
 
-	cloud_cur.width = 19200;
-	cloud_cur.height = 1;
-	cloud_cur.is_dense = false;
-	cloud_cur.points.resize(cloud_cur.width*cloud_cur.height);
-	unsigned short int *depth_point;
 
-	printf("OK\n");
-*/
+
 	while(1)
 	{	
 
-		a=wifi_comu_.receive_data((char*)red,sizeof(red));
-		a=wifi_comu_.receive_data((char*)green,sizeof(green));
-		a=wifi_comu_.receive_data((char*)blue,sizeof(blue));
+		//a=wifi_comu_.receive_data((char*)red,sizeof(red));
+		//a=wifi_comu_.receive_data((char*)green,sizeof(green));
+		//a=wifi_comu_.receive_data((char*)blue,sizeof(blue));
 		//a=wifi_comu_.receive_data(&depth,sizeof(depth));
 		//a=wifi_comu_.receive_data(&transform,sizeof(transform));
 
@@ -62,8 +52,9 @@ void *wifi_recv(void *arg)
 
 		//depth_point = (unsigned short int *)(&depth);
 
-		wifi_comu_.rgbchar2rgbmat(wifi_comu_, picture, red, green, blue);
+		//wifi_comu_.rgbchar2rgbmat(wifi_comu_, picture, red, green, blue);
 
+		wifi_comu_.receive_data_pc(picture);
 		imshow("WIFI picture",picture);
 		waitKey(0);
 
