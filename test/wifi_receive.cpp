@@ -42,13 +42,6 @@ void *wifi_recv(void *arg)
 		//a=wifi_comu_.receive_data(&depth,sizeof(depth));
 		//a=wifi_comu_.receive_data(&transform,sizeof(transform));
 
-		/*
-		a=recvfrom(pc_sock,&red,sizeof(red),0,(struct sockaddr*)&Remote_Addr,&addr_len);//接收数据
-		a=recvfrom(pc_sock,&green,sizeof(green),0,(struct sockaddr*)&Remote_Addr,&addr_len);
-		a=recvfrom(pc_sock,&blue,sizeof(blue),0,(struct sockaddr*)&Remote_Addr,&addr_len);
-		a=recvfrom(pc_sock,&depth,sizeof(depth),0,(struct sockaddr*)&Remote_Addr,&addr_len);
-		a=recvfrom(pc_sock,&move,sizeof(move),0,(struct sockaddr*)&Remote_Addr,&addr_len);
-		*/
 
 		//depth_point = (unsigned short int *)(&depth);
 
