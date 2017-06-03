@@ -51,6 +51,7 @@ void wifi_comu::wifi_init()
 //根据CSDN 博客书写
 void wifi_comu::wifi_init_uav()
 {
+/*
 	if (pc_sock=socket(AF_INET,SOCK_STREAM,0)<0)
 	{
 		printf("socket error\n");
@@ -65,17 +66,27 @@ void wifi_comu::wifi_init_uav()
 	Local_Addr.sin_family = AF_INET;
 	bcopy((char*)server->h_addr, (char *)&Local_Addr.sin_addr.s_addr,server->h_length);
 	Local_Addr.sin_port = htons(LOCALPORT);
-	if((connect(pc_sock,(struct sockaddr *)&Local_Addr,sizeof(Local_Addr)))<0)
+*/
+	if((pc_sock=socket(AF_INET,SOCK_STREAM,0))<0) //建立socket
 	{
+		printf("socket error\n");
+	}	
+
+	Local_Addr.sin_family = AF_INET;
+	Local_Addr.sin_port = htons(LOCALPORT);
+	Local_Addr.sin_addr.s_addr = inet_addr(LOCALIP);
+
+	if((connect(pc_sock,(struct sockaddr *)&Local_Addr,sizeof(Local_Addr)))<0)
+	
 		perror("ERROR connecting");
-	}
+	
 
 }
 
 //wif函数接收端初始化
 void wifi_comu::wifi_init_pc()
 {
-	if (uav_sock=socket(AF_INET,SOCK_STREAM,0)<0)
+	if (pc_sock=socket(AF_INET,SOCK_STREAM,0)<0)
 	{
 		printf("socket error\n");
 	}
@@ -84,14 +95,14 @@ void wifi_comu::wifi_init_pc()
 	Local_Addr.sin_port = htons(LOCALPORT);
 	Local_Addr.sin_addr.s_addr = inet_addr(LOCALIP);
 
-	if(bind(uav_sock, (struct sockaddr *)&Local_Addr,sizeof(Local_Addr))<0)
+	if(bind(pc_sock, (struct sockaddr *)&Local_Addr,sizeof(Local_Addr))<0)
 	{	
 		printf("bind error\n");
 		perror("wifi_bind");
 		return ;
 	}	
 
-	if(listen(uav_sock,5)==-1)
+	if(listen(pc_sock,5)==-1)
 	{
 		printf("listen error\n");
 		return;
@@ -103,8 +114,8 @@ void wifi_comu::wifi_init_pc()
 	cout<<"Wait.."<<endl;
 	do
 	{
-		pc_sock=accept(uav_sock,(struct sockaddr*)&Remote_Addr,&addr_len);
-	}while(pc_sock<0);
+		uav_sock=accept(uav_sock,(struct sockaddr*)&Remote_Addr,&addr_len);
+	}while(uav_sock<0);
 
 
 }
@@ -152,7 +163,7 @@ void wifi_comu::receive_data_pc(Mat frame)
 
 	for (int i=0; i<307200; i+=bytes)
 	{
-		if((bytes=recv(pc_sock,receive_data+i, 307200-i, 0 ))==-1)
+		if((bytes=recv(uav_sock,receive_data+i, 307200-i, 0 ))==-1)
 		{
 			cout<<"Fault"<<endl;
 			exit(-1);
