@@ -105,7 +105,7 @@ void* vo_thread(void *arg)
 void* wifi_thread(void *arg)
 {   
     wifi_comu wifi_comu_;
-    wifi_comu_.wifi_init_new();
+    wifi_comu_.wifi_init_uav();
 
     while(1)
     {   
@@ -121,7 +121,7 @@ if(cin_==1)
         wifi_comu_.send_data(ACRB_WIFI_DATA.blue,307200);
         wifi_comu_.send_data(ACRB_WIFI_DATA.depth,307200);
     */
-        wifi_comu_.send_data_uav(ACRB_WIFI_DATA.rgb_mat);
+        wifi_comu_.send_data_new(ACRB_WIFI_DATA.rgb_mat);
 }
 
 
