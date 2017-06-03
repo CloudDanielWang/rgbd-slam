@@ -85,7 +85,7 @@ void* vo_thread(void *arg)
         ACRB_WIFI_DATA.rgb_mat=color;
         ACRB_WIFI_DATA.depth_mat=depth;
         cv::imshow ( "image",  ACRB_WIFI_DATA.rgb_mat);
-        cv::waitKey ( 1 );
+        cv::waitKey ( 0);
         //
 
         boost::timer timer;
@@ -105,17 +105,25 @@ void* vo_thread(void *arg)
 void* wifi_thread(void *arg)
 {   
     wifi_comu wifi_comu_;
-    wifi_comu_.wifi_init();
+    wifi_comu_.wifi_init_new();
 
     while(1)
     {   
-        wifi_comu_.rgbmat2rgbchar(wifi_comu_,ACRB_WIFI_DATA.rgb_mat, &ACRB_WIFI_DATA.red, &ACRB_WIFI_DATA.green, &ACRB_WIFI_DATA.blue);
-        wifi_comu_.mat2char(wifi_comu_,ACRB_WIFI_DATA.depth_mat, &ACRB_WIFI_DATA.depth);    //test no depth
-
-        wifi_comu_.send_data(ACRB_WIFI_DATA.red,307200);
+       // wifi_comu_.rgbmat2rgbchar(wifi_comu_,ACRB_WIFI_DATA.rgb_mat, &ACRB_WIFI_DATA.red, &ACRB_WIFI_DATA.green, &ACRB_WIFI_DATA.blue);
+        //wifi_comu_.mat2char(wifi_comu_,ACRB_WIFI_DATA.depth_mat, &ACRB_WIFI_DATA.depth);    //test no depth
+int cin_;
+cin>>cin_;
+if(cin_==1)
+{
+    /*
+        wifi_comu_.send_data(ACRB_WIFI_DATA.red,3000);
         wifi_comu_.send_data(ACRB_WIFI_DATA.green,307200);
         wifi_comu_.send_data(ACRB_WIFI_DATA.blue,307200);
         wifi_comu_.send_data(ACRB_WIFI_DATA.depth,307200);
+    */
+        wifi_comu_.send_data_uav(ACRB_WIFI_DATA.rgb_mat);
+}
+
 
         
     }

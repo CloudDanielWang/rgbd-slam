@@ -43,11 +43,16 @@ class wifi_comu:public Frame, public Converter			//继承了frame类
 		~wifi_comu();
 
 		void wifi_init();		//WiFi初始化函数
+		void wifi_init_uav();	//新版测试函数
 
 		int send_time;		//WiFi传送数据所需时间
 	
 		struct sockaddr_in Local_Addr;
 		struct sockaddr_in Remote_Addr;
+
+		//csdn测试部分
+		struct hostent *server;
+		//
 		int pc_sock;
 
 	protected:
@@ -60,6 +65,7 @@ class wifi_comu:public Frame, public Converter			//继承了frame类
 
 	public:
 		void send_data(char *data, unsigned int num);		//WiFi发送数据函数
+		void send_data_new(Mat frame);			//WIFI 发送测试
 		int  receive_data(char *data, long unsigned int num);		//WiFi接受数据函数
 
 	public:

@@ -67,9 +67,9 @@ using namespace pcl;
 #include <sys/time.h>
 #include <stdlib.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <stddef.h>  
 #include <arpa/inet.h>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <stdint.h>
 #include <getopt.h>
