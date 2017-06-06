@@ -111,18 +111,20 @@ void* wifi_thread(void *arg)
     {   
        // wifi_comu_.rgbmat2rgbchar(wifi_comu_,ACRB_WIFI_DATA.rgb_mat, &ACRB_WIFI_DATA.red, &ACRB_WIFI_DATA.green, &ACRB_WIFI_DATA.blue);
         //wifi_comu_.mat2char(wifi_comu_,ACRB_WIFI_DATA.depth_mat, &ACRB_WIFI_DATA.depth);    //test no depth
-int cin_;
-cin>>cin_;
-if(cin_==1)
-{
+//int cin_;
+//cin>>cin_;
+//if(cin_==1)
+//{
     /*
         wifi_comu_.send_data(ACRB_WIFI_DATA.red,3000);
         wifi_comu_.send_data(ACRB_WIFI_DATA.green,307200);
         wifi_comu_.send_data(ACRB_WIFI_DATA.blue,307200);
         wifi_comu_.send_data(ACRB_WIFI_DATA.depth,307200);
     */
-        wifi_comu_.send_data_new(ACRB_WIFI_DATA.rgb_mat);
-}
+        Mat grayframe;
+        cvtColor(ACRB_WIFI_DATA.rgb_mat, grayframe, CV_BGR2GRAY);
+        wifi_comu_.send_data_new(grayframe);
+//}
 
 
         

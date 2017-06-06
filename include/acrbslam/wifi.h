@@ -48,28 +48,25 @@ class wifi_comu:public Frame, public Converter			//继承了frame类
 
 		int send_time;		//WiFi传送数据所需时间
 	
-		struct sockaddr_in Local_Addr;
-		struct sockaddr_in Remote_Addr;
-		struct sockaddr_in Pc_Addr;
+		struct sockaddr_in Server_Addr;		//服务器，即接收端地址
+		struct sockaddr_in Client_Addr;		//客户端，即发送端地址
 
-		//csdn测试部分
-		struct hostent *server;
 		//
 		int pc_sock;
 		int uav_sock;
 
 	protected:
 		//parameters
-		int LOCALPORT;		//本地端口
-		int REMOTEPORT;	//远端端口
+		int SERVER_PORT;		//本地端口
+		int CLIENT_PORT;	//远端端口
 
-		const char* LOCALIP;	//本地IP
-		const char* REMOTEIP;	//远端IP
+		const char* SERVER_IP;	//本地IP
+		const char* CLIENT_IP;	//远端IP
 
 	public:
-		void send_data(char *data, unsigned int num);		//WiFi发送数据函数
+		//void send_data(char *data, unsigned int num);		//WiFi发送数据函数
 		void send_data_new(Mat frame);			//WIFI 发送测试
-		int  receive_data(char *data, long unsigned int num);		//WiFi接受数据函数
+		//int  receive_data(char *data, long unsigned int num);		//WiFi接受数据函数
 		void receive_data_pc(Mat frame);			//wifi pc 接受新函数
 
 	public:
