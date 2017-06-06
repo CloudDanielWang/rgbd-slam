@@ -54,6 +54,14 @@ void* vo_thread(void *arg)
     }
 //数据集读取结束
 
+
+    ///
+    wifi_comu wifi_comu_;
+    wifi_comu_.wifi_init_uav();
+
+    ///
+
+
        for ( int i=0; i<vo->scan_frame_num_ ; i++ )       //循环次数取决与参数文件中的数值
       // for ( int i=0; i<rgb_files.size(); i++ )           //循环次数取决与文件帧的多少
     {
@@ -74,6 +82,20 @@ void* vo_thread(void *arg)
             break;
         //TUM end
 
+        ///
+         cout<<"data_begin"<<endl;
+        Mat grayframe=Mat::zeros(480,640,CV_8UC3);
+
+       cvtColor(color, grayframe, CV_BGR2GRAY);
+
+
+        wifi_comu_.send_data_new(grayframe);
+        cout<<"data_end"<<endl;
+
+
+        ///
+
+
         acrbslam::Frame::Ptr pFrame = acrbslam::Frame::createFrame();
         pFrame->camera_ = camera;
         pFrame->color_ = color;
@@ -86,7 +108,7 @@ void* vo_thread(void *arg)
         ACRB_WIFI_DATA.depth_mat=depth;
         cv::imshow ( "image",  ACRB_WIFI_DATA.rgb_mat);
         cv::waitKey ( 0);
-        //
+
 
         boost::timer timer;
         vo->addFrame ( pFrame );
@@ -111,20 +133,24 @@ void* wifi_thread(void *arg)
     {   
        // wifi_comu_.rgbmat2rgbchar(wifi_comu_,ACRB_WIFI_DATA.rgb_mat, &ACRB_WIFI_DATA.red, &ACRB_WIFI_DATA.green, &ACRB_WIFI_DATA.blue);
         //wifi_comu_.mat2char(wifi_comu_,ACRB_WIFI_DATA.depth_mat, &ACRB_WIFI_DATA.depth);    //test no depth
-//int cin_;
-//cin>>cin_;
-//if(cin_==1)
-//{
-    /*
-        wifi_comu_.send_data(ACRB_WIFI_DATA.red,3000);
-        wifi_comu_.send_data(ACRB_WIFI_DATA.green,307200);
-        wifi_comu_.send_data(ACRB_WIFI_DATA.blue,307200);
-        wifi_comu_.send_data(ACRB_WIFI_DATA.depth,307200);
-    */
-        Mat grayframe;
-        cvtColor(ACRB_WIFI_DATA.rgb_mat, grayframe, CV_BGR2GRAY);
+
+int cin_;
+cin>>cin_;
+if(cin_==1)
+{
+         cout<<"data_begin"<<endl;
+        Mat grayframe=Mat::zeros(480,640,CV_8UC3);
+
+       cvtColor(ACRB_WIFI_DATA.rgb_mat, grayframe, CV_BGR2GRAY);
+
+
         wifi_comu_.send_data_new(grayframe);
-//}
+        cout<<"data_end"<<endl;
+
+       // cv::imshow("depthframe",grayframe);
+       // cv::waitKey(0);
+
+}
 
 
         
@@ -153,7 +179,7 @@ int main ( int argc, char** argv )
     pthread_t   thread_wifi;        void *retval_wifi;
     pthread_t   thread_vo;          void *retval_vo;
 
-    int ret_wifi=pthread_create(&thread_wifi,NULL, acrbslam::wifi_thread, NULL);
+   // int ret_wifi=pthread_create(&thread_wifi,NULL, acrbslam::wifi_thread, NULL);
     int ret_vo=pthread_create(&thread_vo,NULL,acrbslam::vo_thread,NULL);
 
     while(1);

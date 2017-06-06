@@ -67,7 +67,7 @@ class wifi_comu:public Frame, public Converter			//继承了frame类
 		//void send_data(char *data, unsigned int num);		//WiFi发送数据函数
 		void send_data_new(Mat frame);			//WIFI 发送测试
 		//int  receive_data(char *data, long unsigned int num);		//WiFi接受数据函数
-		void receive_data_pc(Mat frame);			//wifi pc 接受新函数
+		cv::Mat  receive_data_pc();			//wifi pc 接受新函数
 
 	public:
 		//data

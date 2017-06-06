@@ -64,6 +64,8 @@ void wifi_comu::wifi_init_uav()
 	if((connect(pc_sock,(struct sockaddr *)&Server_Addr,sizeof(Server_Addr)))<0)
 	
 		perror("ERROR connecting");
+
+	return;
 	
 
 }
@@ -77,8 +79,8 @@ void wifi_comu::wifi_init_pc()
 	}	
 
 	Client_Addr.sin_family = AF_INET;
-	Client_Addr.sin_port = htons(SERVER_PORT);
-	Client_Addr.sin_addr.s_addr = inet_addr(SERVER_IP);
+	Client_Addr.sin_port = htons(CLIENT_PORT);
+	Client_Addr.sin_addr.s_addr =INADDR_ANY;// inet_addr(CLIENT_IP);
 
 	if(bind(pc_sock,(struct sockaddr *)&Client_Addr,sizeof(Client_Addr))<0)		//此处为本地IP与端口
 	{	
@@ -102,7 +104,7 @@ void wifi_comu::wifi_init_pc()
 		uav_sock=accept(pc_sock,(struct sockaddr*)&Server_Addr,&addr_len);
 	}while(uav_sock<0);
 
-
+	return;
 }
 
 
@@ -127,6 +129,8 @@ void wifi_comu::send_data_new(Mat frame)
 	{
 		printf("wifi_send_error\n");
 	}
+	cout<<"send finishied"<<endl;
+	return;
 		
 	
 }
@@ -148,14 +152,14 @@ int wifi_comu::receive_data(char *data, long unsigned int num)
 */
 
 //wifi pc端接收新函数
-void wifi_comu::receive_data_pc(Mat frame)
+cv::Mat  wifi_comu::receive_data_pc()
 {
 	char receive_data[307200];
 	int bytes=0;
 
 	for (int i=0; i<307200; i+=bytes)
 	{
-		if((bytes=recv(uav_sock,receive_data+i, 307200-i, 0 ))==-1)
+		if((bytes=recv(pc_sock,receive_data+i, 307200-i, 0 ))==-1)
 		{
 			cout<<"Fault"<<endl;
 			exit(-1);
@@ -163,8 +167,8 @@ void wifi_comu::receive_data_pc(Mat frame)
 		}
 	}
 	Mat temp_mat(Size(640,480), CV_8UC1, receive_data);
-	frame=temp_mat;
-	return;
+	
+	return temp_mat;
 }
 
 
