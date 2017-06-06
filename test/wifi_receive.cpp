@@ -12,21 +12,8 @@ namespace acrbslam
 
 void *wifi_recv(void *arg)
 {
-	//struct sockaddr_in Local_Addr;
-	//struct sockaddr_in Remote_Addr;
-	//int pc_sock,a;
-	//socklen_t addr_len=sizeof(Remote_Addr);
-
 	wifi_comu wifi_comu_;
     	wifi_comu_.wifi_init_pc();
-
-
-	char red[307200];
-	char green[307200];
-	char blue[307200];
-	char depth[76800];
-	//char move[48];
-	int a;
 
 	Mat picture=Mat::zeros(480,640,CV_8UC3);
 
@@ -36,89 +23,14 @@ void *wifi_recv(void *arg)
 	while(1)
 	{	
 
-		//a=wifi_comu_.receive_data((char*)red,sizeof(red));
-		//a=wifi_comu_.receive_data((char*)green,sizeof(green));
-		//a=wifi_comu_.receive_data((char*)blue,sizeof(blue));
-		//a=wifi_comu_.receive_data(&depth,sizeof(depth));
-		//a=wifi_comu_.receive_data(&transform,sizeof(transform));
-
-
-		//depth_point = (unsigned short int *)(&depth);
-
-		//wifi_comu_.rgbchar2rgbmat(wifi_comu_, picture, red, green, blue);
-
-		wifi_comu_.receive_data_pc(picture);
+		picture=wifi_comu_.receive_data_pc();
 		imshow("WIFI picture",picture);
-		waitKey(0);
+		waitKey(1);
 
-/*
-		double movement[6];
-		double *real_move=(double *)(move);
-		movement[0]=*real_move;
-		movement[1]=*(++real_move);
-		movement[2]=*(++real_move);
-		movement[3]=*(++real_move);
-		movement[4]=*(++real_move);
-		movement[5]=*(++real_move);
-		printf("x:%f, y:%f, z:%f, roll:%F, pitch:%F, yaw:%f",movement[0],movement[1],movement[2],movement[3],movement[4],movement[5]);
 
-		printf("OK3\n");
-
-		Mat rvec=Mat::zeros(3,1,CV_64F);
-		rvec.at<double>(0,0)=-(double)(movement[3]*3.1415/180.0);
-		rvec.at<double>(1,0)=(double)(movement[4]*3.1415/180.0);
-		rvec.at<double>(2,0)=-(double)(movement[5]*3.1415/180.0);
-		Mat R;
-		Rodrigues(rvec,R);
-		Eigen::Matrix3d r;	
-
-		r(0,0)=R.at<double>(0,0);
-		r(0,1)=R.at<double>(0,1);
-		r(0,2)=R.at<double>(0,2);
-		r(1,0)=R.at<double>(1,0);
-		r(1,1)=R.at<double>(1,1);
-		r(1,2)=R.at<double>(1,2);
-		r(2,0)=R.at<double>(2,0);
-		r(2,1)=R.at<double>(2,1);
-		r(2,2)=R.at<double>(2,2);
-
-		Eigen::Isometry3d T = Eigen::Isometry3d::Identity();
-		Eigen::Isometry3d T1 = Eigen::Isometry3d::Identity();
-
-		Eigen::AngleAxisd angle(r);
-		T = angle;	
-
-		T(0,3) =-(double)(movement[0]/1000.0);
-		T(1,3) =-(double)(movement[1]/1000.0);
-		T(2,3) =-(double)(movement[2]/1000.0);	
-
-		cout<<"T:"<<T.matrix()<<endl;	
-
-		T1=T.inverse();
-
-		pcl::transformPointCloud(*cloud_cur_point,*cloud_cur_trans, T.matrix());
-		printf("OK5\n");
-		*output += *cloud_cur_trans;
-
-		printf("OK4\n");		
-	*/
 	}
 }
 
-/*
-void* pcl_3d(void *arg)
-{
-	pcl::visualization::PCLVisualizer viewer("picture");
-	viewer.addPointCloud(output,"one");
-	while(1)
-	{
-//	viewer.addPointCloud(output,"one");
-//	viewer.removePointCloud("one");
-	viewer.updatePointCloud(output,"one");
-	viewer.spinOnce(1300);
-	}
-}
-*/
 
 
 }	//namespace acrbslam
