@@ -4,6 +4,7 @@
 
 #include "acrbslam/common_include.h"
 #include "acrbslam/map.h"
+#include "acrbslam/data.h"
 
 namespace acrbslam 
 {
@@ -52,7 +53,8 @@ public: // functions
     VisualOdometry();
     ~VisualOdometry();
     
-    bool addFrame( Frame::Ptr frame );      // add a new frame 
+    //bool addFrame( Frame::Ptr frame);      // add a new frame 
+    Data addFrame(Frame::Ptr frame);
     
 protected:  
     // inner operation 

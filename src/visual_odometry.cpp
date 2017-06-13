@@ -6,6 +6,8 @@
 #include "acrbslam/visual_odometry.h"
 #include "acrbslam/g2o_types.h"
 
+#include "acrbslam/data.h"
+
 namespace acrbslam
 {
 
@@ -32,8 +34,13 @@ VisualOdometry::~VisualOdometry()
 
 }
 
-bool VisualOdometry::addFrame ( Frame::Ptr frame )
+//bool VisualOdometry::addFrame ( Frame::Ptr frame)
+Data VisualOdometry::addFrame ( Frame::Ptr frame)
 {
+    //
+    Data data;
+    //
+
     switch ( state_ )
     {
     case INITIALIZING:
@@ -44,6 +51,8 @@ bool VisualOdometry::addFrame ( Frame::Ptr frame )
         extractKeyPoints();
         computeDescriptors();
         addKeyFrame();      // the first frame is a key-frame
+        data.CameraImage=frame->color_.clone();// 初始化时第一帧记为关键帧
+         data.Depth=frame->depth_.clone();
         break;
     }
     case OK:
@@ -62,7 +71,8 @@ bool VisualOdometry::addFrame ( Frame::Ptr frame )
             if ( checkKeyFrame() == true ) // is a key-frame
             {
                 addKeyFrame();
-                //saveKeyFrame();          //添加用于关键帧数据的存储，便于传输
+                data.CameraImage=curr_->color_.clone();// saveKeyFrame();          //添加用于关键帧数据的存储，便于传输
+                data.Depth=curr_->depth_.clone();
             }
         }
         else // bad estimation due to various reasons
@@ -72,7 +82,8 @@ bool VisualOdometry::addFrame ( Frame::Ptr frame )
             {
                 state_ = LOST;
             }
-            return false;
+            //return false;     //本身返回错误
+            return data;        //修改为返回数值，需要修改此部分！！！！
         }
         break;
     }
@@ -83,7 +94,8 @@ bool VisualOdometry::addFrame ( Frame::Ptr frame )
     }
     }
 
-    return true;
+    //return true;
+    return data;
 }
 
 void VisualOdometry::extractKeyPoints()                     //ORB检测特征点
@@ -366,6 +378,11 @@ double VisualOdometry::getViewAngle ( Frame::Ptr frame, MapPoint::Ptr point )
     Vector3d n = point->pos_ - frame->getCamCenter();
     n.normalize();
     return acos( n.transpose()*point->norm_ );
+}
+
+void saveKeyFrame()
+{
+    //*data.keyframe=curr_;
 }
 
 

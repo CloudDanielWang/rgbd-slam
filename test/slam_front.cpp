@@ -9,7 +9,8 @@
 
 namespace acrbslam
 {
-ACRB_WIFI_DATA_  ACRB_WIFI_DATA;
+//ACRB_WIFI_DATA_  ACRB_WIFI_DATA;
+acrbslam::Data data;    //数据存储类
 
 void* vo_thread(void *arg)
 {
@@ -20,7 +21,7 @@ void* vo_thread(void *arg)
 
     acrbslam::Camera::Ptr camera ( new acrbslam::Camera );
 
-    acrbslam::Data data;    //数据存储类
+
 
     //openni 输入
     //VideoCapture capture(CV_CAP_OPENNI);    //设置视频的来源为OPENNI设备，即Kinect
@@ -81,28 +82,20 @@ void* vo_thread(void *arg)
         if ( color.data==nullptr || depth.data==nullptr )
             break;
         //TUM end
-        Mat ImageBlueChannel;
-        Mat ImageGreenChannel;
-        Mat ImageRedChannel;
+        //Mat ImageBlueChannel;
+       // Mat ImageGreenChannel;
+        //Mat ImageRedChannel;
 
         ///
-        Converter converter;
-        converter.SplitRGBMat(color, &ImageBlueChannel,  &ImageGreenChannel,  &ImageRedChannel);
+        //Converter converter;
+       // converter.SplitRGBMat(color, &ImageBlueChannel,  &ImageGreenChannel,  &ImageRedChannel);
+       // Mat mergemat=converter.MergeRGBMat(ImageBlueChannel,  ImageGreenChannel,  ImageRedChannel);
        /*
         imshow("ImageBlueChannel",ImageBlueChannel);
         imshow("ImageGreenChannel",ImageGreenChannel);
         imshow("ImageRedChannel",ImageRedChannel);
         waitKey(0);
         */
-         //cout<<"data_begin"<<endl;
-      //  Mat grayframe=Mat::zeros(480,640,CV_8UC3);
-
-     //  cvtColor(color, grayframe, CV_BGR2GRAY);
-
-
-        //wifi_comu_.send_data_new(grayframe);
-       // cout<<"data_end"<<endl;
-
 
         ///
 
@@ -115,17 +108,27 @@ void* vo_thread(void *arg)
         //数据集时所用时间戳
         pFrame->time_stamp_ = rgb_times[i];
         //
-        ACRB_WIFI_DATA.rgb_mat=color;
-        ACRB_WIFI_DATA.depth_mat=depth;
-        cv::imshow ( "image",  ACRB_WIFI_DATA.rgb_mat);
-        cv::waitKey ( 0);
-
+        //ACRB_WIFI_DATA.rgb_mat=color;
+        //ACRB_WIFI_DATA.depth_mat=depth;
+       // cv::imshow ( "image",  ACRB_WIFI_DATA.rgb_mat);
+        //cv::waitKey ( 0);
+        
 
         boost::timer timer;
-        vo->addFrame ( pFrame );
+       // vo->addFrame ( pFrame );
+        data=vo->addFrame(pFrame);
+        //data.CameraImage=pFrame->color_.clone();
+        if (data.CameraImage.empty())
+        {
+            cout<<"This Frame is Empty!!"<<endl;
+            continue;
+        }
+        cv::imshow ( "image",  data.CameraImage);
+        cv::imshow ( "depth",  data.Depth);
+        cv::waitKey ( 0);
 
        // Converter converter;
-        converter.se32char(pFrame->T_c_w_, &data.rotation_char, &data.translation_char);
+       // converter.se32char(pFrame->T_c_w_, &data.rotation_char, &data.translation_char);
         cout<<"VO costs time: "<<timer.elapsed() <<endl;
 
         if ( vo->state_ == acrbslam::VisualOdometry::LOST )
@@ -143,23 +146,21 @@ void* wifi_thread(void *arg)
     while(1)
     {   
 
-int cin_;
-cin>>cin_;
-if(cin_==1)
-{
-         cout<<"data_begin"<<endl;
-        Mat grayframe=Mat::zeros(480,640,CV_8UC3);
+        wifi_comu_.SplitRGBMat(data.CameraImage, &data.ImageBlueChannel,  &data.ImageGreenChannel,  &data.ImageRedChannel);
 
-       cvtColor(ACRB_WIFI_DATA.rgb_mat, grayframe, CV_BGR2GRAY);
+        cout<<"wifi send data begin"<<endl;
+
+        wifi_comu_.send_data_new(data.ImageBlueChannel);
+        wifi_comu_.send_data_new(data.ImageGreenChannel);
+        wifi_comu_.send_data_new(data.ImageRedChannel);
+       // wifi_comu_.send_data_new(data.keyframe.depth_);
+
+        cout<<"wifi send data finish"<<endl;
+
+        cv::imshow("frame",data.CameraImage);
+        cv::waitKey(0);
 
 
-        wifi_comu_.send_data_new(grayframe);
-        cout<<"data_end"<<endl;
-
-       // cv::imshow("depthframe",grayframe);
-       // cv::waitKey(0);
-
-}
 
 
         

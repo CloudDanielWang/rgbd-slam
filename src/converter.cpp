@@ -145,6 +145,14 @@ void Converter::SplitRGBMat(Mat RGBMat, Mat *ImageBlueChannel, Mat *ImageGreenCh
 	return;
 }
 
+Mat Converter::MergeRGBMat(Mat ImageBlueChannel, Mat ImageGreenChannel, Mat ImageRedChannel)
+{	
+	Mat ImageRGB;
+	vector<Mat> channels={ImageBlueChannel,ImageGreenChannel, ImageRedChannel};
+	merge(channels,ImageRGB);
+	return ImageRGB;
+}
+
 
 }//namespace acrbslam
 
