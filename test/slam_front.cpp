@@ -57,8 +57,8 @@ void* vo_thread(void *arg)
 
 
     ///
-    //wifi_comu wifi_comu_;
-    //wifi_comu_.wifi_init_uav();
+    wifi_comu wifi_comu_;
+    wifi_comu_.wifi_init_uav();
 
     ///
 
@@ -107,11 +107,6 @@ void* vo_thread(void *arg)
 
         //数据集时所用时间戳
         pFrame->time_stamp_ = rgb_times[i];
-        //
-        //ACRB_WIFI_DATA.rgb_mat=color;
-        //ACRB_WIFI_DATA.depth_mat=depth;
-       // cv::imshow ( "image",  ACRB_WIFI_DATA.rgb_mat);
-        //cv::waitKey ( 0);
         
 
         boost::timer timer;
@@ -123,9 +118,24 @@ void* vo_thread(void *arg)
             cout<<"This Frame is Empty!!"<<endl;
             continue;
         }
+        //cout<<data.CameraImage.size()<<endl;
         cv::imshow ( "image",  data.CameraImage);
-        cv::imshow ( "depth",  data.Depth);
+        //cv::imshow ( "depth",  data.Depth);
         cv::waitKey ( 0);
+//
+/*      VO线程中WiFi发送图片测试程序段
+         wifi_comu_.SplitRGBMat(data.CameraImage, &data.ImageBlueChannel,  &data.ImageGreenChannel,  &data.ImageRedChannel);
+
+        
+        Mat grayframe;
+        cvtColor(color,grayframe,CV_RGB2GRAY);
+        cv::imshow ( "gray",  grayframe);
+        waitKey(0);
+        cout<<"wifi send data begin"<<endl;
+        wifi_comu_.send_data_new(grayframe);
+        cout<<"wifi send data finish"<<endl;
+*/
+//
 
        // Converter converter;
        // converter.se32char(pFrame->T_c_w_, &data.rotation_char, &data.translation_char);
@@ -145,22 +155,25 @@ void* wifi_thread(void *arg)
 
     while(1)
     {   
-
-        wifi_comu_.SplitRGBMat(data.CameraImage, &data.ImageBlueChannel,  &data.ImageGreenChannel,  &data.ImageRedChannel);
+         if (!data.CameraImage.empty())
+         {
+             wifi_comu_.SplitRGBMat(data.CameraImage, &data.ImageBlueChannel,  &data.ImageGreenChannel,  &data.ImageRedChannel);
 
         cout<<"wifi send data begin"<<endl;
 
         wifi_comu_.send_data_new(data.ImageBlueChannel);
-        wifi_comu_.send_data_new(data.ImageGreenChannel);
-        wifi_comu_.send_data_new(data.ImageRedChannel);
-       // wifi_comu_.send_data_new(data.keyframe.depth_);
+       // wifi_comu_.send_data_new(data.ImageGreenChannel);
+       // wifi_comu_.send_data_new(data.ImageRedChannel);
+        //wifi_comu_.send_data_new(data.Depth);
 
         cout<<"wifi send data finish"<<endl;
 
         cv::imshow("frame",data.CameraImage);
         cv::waitKey(0);
+       
+         }//endif 
 
-
+        
 
 
         

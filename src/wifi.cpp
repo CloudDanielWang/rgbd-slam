@@ -125,6 +125,7 @@ void wifi_comu::send_data(char *data,unsigned int num)
 //wifi发送新函数
 void wifi_comu::send_data_new(Mat frame)
 {
+	//if((send(pc_sock,frame.data, 307200,0))==-1)
 	if((send(pc_sock,frame.data, frame.total()*frame.elemSize(),0))==-1)
 	{
 		printf("wifi_send_error\n");
