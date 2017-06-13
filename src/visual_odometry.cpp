@@ -52,8 +52,9 @@ Data VisualOdometry::addFrame ( Frame::Ptr frame)
         computeDescriptors();
         addKeyFrame();      // the first frame is a key-frame
         //之后可以将数据的存储写进data的类函数中，便于调用
-        data.CameraImage=frame->color_.clone();// 初始化时第一帧记为关键帧
-        data.Depth=frame->depth_.clone();
+        //data.CameraImage=frame->color_.clone();// 初始化时第一帧记为关键帧
+        //data.Depth=frame->depth_.clone();
+        data.inputData(frame);
         break;
     }
     case OK:
@@ -72,9 +73,10 @@ Data VisualOdometry::addFrame ( Frame::Ptr frame)
             if ( checkKeyFrame() == true ) // is a key-frame
             {
                 addKeyFrame();
-                data.CameraImage=curr_->color_.clone();//         将关键帧的数据传输给DATA，便于传输
-                data.Depth=curr_->depth_.clone();
-                data.T_c_w=curr_->T_c_w_;                                   //传输SE3给DATA，后用转换函数进行转化
+                //data.CameraImage=curr_->color_.clone();//         将关键帧的数据传输给DATA，便于传输
+                //data.Depth=curr_->depth_.clone();
+                //data.T_c_w=curr_->T_c_w_;                                   //传输SE3给DATA，后用转换函数进行转化
+                data.inputData(curr_);
             }
         }
         else // bad estimation due to various reasons

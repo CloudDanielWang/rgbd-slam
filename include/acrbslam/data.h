@@ -31,17 +31,17 @@ public:
 	Eigen::Matrix3d rotation_estimate;
 	Eigen::Vector3d translation_estimate;
 
-	
-
-
-	//char *rotation;
-	//char *translation;
-
-	//char rotation_char[3][3];
-	//char translation_char[3];
-
 	char *rotation_char;
 	char * translation_char;
+
+public:
+	Data();
+	~Data();
+
+	void inputData(Frame::Ptr frame);		//将frame中的参数保存在data类中
+
+protected:
+	void processingdata();
 
 
 

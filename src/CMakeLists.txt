@@ -13,6 +13,7 @@
 #    ${THIRD_PARTY_LIBS}
 #)
 
+#之后此处需要根据用途分类进行链接，整理
 add_library(wifi wifi.cpp
     frame.cpp
     mappoint.cpp
@@ -23,6 +24,7 @@ add_library(wifi wifi.cpp
     visual_odometry.cpp
     cloudmap.cpp
     converter.cpp
+    data.cpp
 )
 
 target_link_libraries( wifi
