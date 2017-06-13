@@ -115,7 +115,7 @@ void* vo_thread(void *arg)
         //data.CameraImage=pFrame->color_.clone();
         if (data.CameraImage.empty())
         {
-            cout<<"This Frame is Empty!!"<<endl;
+            cout<<"This Frame is Not The KeyFrame!!!"<<endl;
             continue;
         }
         //cout<<data.CameraImage.size()<<endl;

@@ -2,8 +2,8 @@
 #include <boost/timer.hpp>
 
 #include "acrbslam/config.h"
-#include "acrbslam/visual_odometry.h"
-#include "acrbslam/cloudmap.h"
+//#include "acrbslam/visual_odometry.h"
+//#include "acrbslam/cloudmap.h"
 #include "acrbslam/wifi.h"
 
 namespace acrbslam
@@ -15,20 +15,25 @@ void *wifi_recv(void *arg)
 	wifi_comu wifi_comu_;
     	wifi_comu_.wifi_init_pc();
 
-	Mat picture=Mat::zeros(480,640,CV_8UC3);
+	Mat CameraRGBimage=Mat::zeros(480,640,CV_8UC3);
 
-
-
+	Mat Depth;	
+	Mat ImageBlueChannel=Mat::zeros(480,640,CV_8UC3);
+	Mat ImageGreenChannel;
+	Mat ImageRedChannel;
 
 	while(1)
 	{	
 
-		picture=wifi_comu_.receive_data_pc();
-		imshow("WIFI picture",picture);
+		ImageBlueChannel=wifi_comu_.receive_data_pc();
+		//ImageGreenChannel=wifi_comu_.receive_data_pc();
+		//ImageRedChannel=wifi_comu_.receive_data_pc();
+		imshow("WIFI picture",ImageBlueChannel);
 		waitKey(1);
 
 
 	}
+	close(wifi_comu_.pc_sock);
 }
 
 

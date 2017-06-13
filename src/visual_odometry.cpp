@@ -51,8 +51,9 @@ Data VisualOdometry::addFrame ( Frame::Ptr frame)
         extractKeyPoints();
         computeDescriptors();
         addKeyFrame();      // the first frame is a key-frame
+        //之后可以将数据的存储写进data的类函数中，便于调用
         data.CameraImage=frame->color_.clone();// 初始化时第一帧记为关键帧
-         data.Depth=frame->depth_.clone();
+        data.Depth=frame->depth_.clone();
         break;
     }
     case OK:
@@ -71,8 +72,9 @@ Data VisualOdometry::addFrame ( Frame::Ptr frame)
             if ( checkKeyFrame() == true ) // is a key-frame
             {
                 addKeyFrame();
-                data.CameraImage=curr_->color_.clone();// saveKeyFrame();          //添加用于关键帧数据的存储，便于传输
+                data.CameraImage=curr_->color_.clone();//         将关键帧的数据传输给DATA，便于传输
                 data.Depth=curr_->depth_.clone();
+                data.T_c_w=curr_->T_c_w_;                                   //传输SE3给DATA，后用转换函数进行转化
             }
         }
         else // bad estimation due to various reasons
@@ -83,7 +85,7 @@ Data VisualOdometry::addFrame ( Frame::Ptr frame)
                 state_ = LOST;
             }
             //return false;     //本身返回错误
-            return data;        //修改为返回数值，需要修改此部分！！！！
+            return data;        //修改为返回数值，需要修改此部分！！！！可能需要在data类中添加错误返回函数
         }
         break;
     }
@@ -233,6 +235,7 @@ void VisualOdometry::poseEstimationPnP()
     Eigen::Isometry3d transfomation = pose->estimate(); 
     Eigen::Matrix3d rotation_estimate = transfomation.rotation();
     Eigen::Vector3d translation_estimate=transfomation.translation();
+
     
      //cout<<"rotation_estimate:\n "<<rotation_estimate.eulerAngles(2,0,1)*180/3.141592653<<endl;     //roll pitch raw
      //cout<<"translation_estimate:\n "<<translation_estimate<<endl;
@@ -380,10 +383,6 @@ double VisualOdometry::getViewAngle ( Frame::Ptr frame, MapPoint::Ptr point )
     return acos( n.transpose()*point->norm_ );
 }
 
-void saveKeyFrame()
-{
-    //*data.keyframe=curr_;
-}
 
 
 }

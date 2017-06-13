@@ -23,6 +23,10 @@ public:
     // std::vector<cv::KeyPoint>      keypoints_;  // key points in image
     // std::vector<MapPoint*>         map_points_; // associated map points
     bool                           is_key_frame_;  // whether a key-frame
+
+    //
+
+    //
     
 public: // data members 
     Frame();                    //帧的初始化函数

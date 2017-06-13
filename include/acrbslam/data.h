@@ -20,13 +20,18 @@ public:
 	char *blue;
 	char *depth;
 
-	cv::Mat CameraImage;	//包含在了frame 里
-	Mat Depth;		//包含在了frame 里
+	Mat CameraImage;	
+	Mat Depth;		
 	Mat ImageBlueChannel;
 	Mat ImageGreenChannel;
 	Mat ImageRedChannel;
 
-	//Frame::Ptr keyframe = acrbslam::Frame::createFrame();
+	SE3 T_c_w;
+	Eigen::Isometry3d transfomation;
+	Eigen::Matrix3d rotation_estimate;
+	Eigen::Vector3d translation_estimate;
+
+	
 
 
 	//char *rotation;
