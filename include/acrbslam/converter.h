@@ -19,6 +19,8 @@ public:
 	void mat2char(Converter converter, Mat mat_, char** char_);
 	void char2mat(Converter converter, Mat mat_, char** char_);
 
+	void SplitRGBMat(Mat RGBMat, Mat *ImageBlueChannel, Mat *ImageGreenChannel, Mat *ImageRedChannel);
+
 	//void se32char(Sophus::SE3 pose, char rotation_char[3][3], char translation_char[3]);
 	void se32char(Sophus::SE3 pose, char **rotation_char, char **translation_char);
 

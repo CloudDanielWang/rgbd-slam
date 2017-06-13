@@ -8,7 +8,7 @@ namespace acrbslam
 
 //converter::converter();
 //Converter::Converter()
-//:()
+
 
 void Converter::rgbmat2rgbchar(Converter converter, Mat rgbmat, char **red,char **green,char **blue)
 {	
@@ -30,6 +30,30 @@ void Converter::rgbmat2rgbchar(Converter converter, Mat rgbmat, char **red,char 
 	*green=converter.green_mat;
 	*blue=converter.blue_mat;
 }
+
+/*
+void Converter::rgbmat2rgbchar( Mat rgbmat, Data data)
+{	
+
+	int x,y,temp;
+
+	for( y = 0; y < rgbmat.rows; y++ ) 
+	{ 
+		temp=y*rgbmat.cols;
+
+		for( x = 0; x < rgbmat.cols; x++ ) 
+		{
+			red_temp[temp+x]=rgbmat.at<Vec3b>(y,x)[0];
+			green_temp[temp+x]=rgbmat.at<Vec3b>(y,x)[1];
+			blue_temp[temp+x]=rgbmat.at<Vec3b>(y,x)[2];
+		}
+	}
+
+	*red=red_temp;
+	*green=green_temp;
+	*blue=blue_temp;
+}
+*/
 
 void Converter::rgbchar2rgbmat(Converter converter, Mat rgbmat, char red[],char green[],char blue[])
 {	
@@ -111,7 +135,15 @@ void Converter::se32char(Sophus::SE3 pose, char **rotation_char, char **translat
 }
 
 
-
+void Converter::SplitRGBMat(Mat RGBMat, Mat *ImageBlueChannel, Mat *ImageGreenChannel, Mat *ImageRedChannel)
+{
+	vector<Mat> channels;
+	split(RGBMat,channels);
+	*ImageBlueChannel=channels.at(0);
+	*ImageGreenChannel=channels.at(1);
+	*ImageRedChannel=channels.at(2);
+	return;
+}
 
 
 }//namespace acrbslam

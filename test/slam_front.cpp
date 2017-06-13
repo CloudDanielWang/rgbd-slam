@@ -56,8 +56,8 @@ void* vo_thread(void *arg)
 
 
     ///
-    wifi_comu wifi_comu_;
-    wifi_comu_.wifi_init_uav();
+    //wifi_comu wifi_comu_;
+    //wifi_comu_.wifi_init_uav();
 
     ///
 
@@ -81,16 +81,27 @@ void* vo_thread(void *arg)
         if ( color.data==nullptr || depth.data==nullptr )
             break;
         //TUM end
+        Mat ImageBlueChannel;
+        Mat ImageGreenChannel;
+        Mat ImageRedChannel;
 
         ///
-         cout<<"data_begin"<<endl;
-        Mat grayframe=Mat::zeros(480,640,CV_8UC3);
+        Converter converter;
+        converter.SplitRGBMat(color, &ImageBlueChannel,  &ImageGreenChannel,  &ImageRedChannel);
+       /*
+        imshow("ImageBlueChannel",ImageBlueChannel);
+        imshow("ImageGreenChannel",ImageGreenChannel);
+        imshow("ImageRedChannel",ImageRedChannel);
+        waitKey(0);
+        */
+         //cout<<"data_begin"<<endl;
+      //  Mat grayframe=Mat::zeros(480,640,CV_8UC3);
 
-       cvtColor(color, grayframe, CV_BGR2GRAY);
+     //  cvtColor(color, grayframe, CV_BGR2GRAY);
 
 
-        wifi_comu_.send_data_new(grayframe);
-        cout<<"data_end"<<endl;
+        //wifi_comu_.send_data_new(grayframe);
+       // cout<<"data_end"<<endl;
 
 
         ///
@@ -113,7 +124,7 @@ void* vo_thread(void *arg)
         boost::timer timer;
         vo->addFrame ( pFrame );
 
-        Converter converter;
+       // Converter converter;
         converter.se32char(pFrame->T_c_w_, &data.rotation_char, &data.translation_char);
         cout<<"VO costs time: "<<timer.elapsed() <<endl;
 
@@ -131,8 +142,6 @@ void* wifi_thread(void *arg)
 
     while(1)
     {   
-       // wifi_comu_.rgbmat2rgbchar(wifi_comu_,ACRB_WIFI_DATA.rgb_mat, &ACRB_WIFI_DATA.red, &ACRB_WIFI_DATA.green, &ACRB_WIFI_DATA.blue);
-        //wifi_comu_.mat2char(wifi_comu_,ACRB_WIFI_DATA.depth_mat, &ACRB_WIFI_DATA.depth);    //test no depth
 
 int cin_;
 cin>>cin_;
