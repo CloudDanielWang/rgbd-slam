@@ -148,6 +148,33 @@ void wifi_comu::send_data_new(Mat frame)
 //
 
 
+//
+void wifi_comu::send_data_client_writev(Mat RGBframe, Mat Depthframe)
+{
+	const int rgbimgSize = RGBframe.total()*RGBframe.elemSize();
+	//cout<<"rgbimgSize"<<rgbimgSize<<endl;
+	const int depthSize = Depthframe.total()*Depthframe.elemSize();
+	//cout<<"depthSize"<<depthSize<<endl;
+
+
+	 struct iovec frame_data[2];
+           	frame_data[0].iov_base=RGBframe.data;
+           	frame_data[0].iov_len=rgbimgSize;
+           	frame_data[1].iov_base=Depthframe.data;
+           	frame_data[1].iov_len=depthSize;
+
+	if((writev(server_sock,frame_data, 2))==-1)
+	{
+		printf("wifi_send_error\n");
+	}
+
+	return;
+		
+}
+
+//
+
+
 
 //wifi server端接收新函数
 cv::Mat  wifi_comu::receive_data_pc(Mat frame)
@@ -170,6 +197,39 @@ cv::Mat  wifi_comu::receive_data_pc(Mat frame)
 	Mat temp_mat(Size(640,480), CV_8UC3, sockData);
 	
 	return temp_mat;
+}
+
+
+
+cv::Mat  wifi_comu::receive_data_server_readv(Mat RGBframe, Mat Depthframe)
+{
+	const int rgbimgSize = RGBframe.total()*RGBframe.elemSize();
+	 uchar RGBData[rgbimgSize];
+
+	const int depthSize = Depthframe.total()*Depthframe.elemSize();
+	uchar DepthData[depthSize];
+
+	 struct iovec frame_data[2];
+           	frame_data[0].iov_base=RGBData;
+           	frame_data[0].iov_len=rgbimgSize;
+           	frame_data[1].iov_base=DepthData;
+           	frame_data[1].iov_len=depthSize;
+
+           	int bytes=0;
+
+
+	if((bytes=readv(client_sock,frame_data,2 ))==-1)
+	{
+		cout<<"Fault"<<endl;
+		close(client_sock);
+		exit(-1);
+
+	}
+
+	Mat temp_mat(Size(640,480), CV_8UC3, RGBData);
+	//Mat temp_depth_mat(Size(640,480), CV_16UC1, DepthData);
+	return temp_mat;
+	//return temp_depth_mat;
 }
 
 

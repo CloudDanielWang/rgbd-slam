@@ -15,14 +15,20 @@ void *wifi_recv(void *arg)
 	wifi_comu wifi_comu_;
     	wifi_comu_.wifi_init_pc();
 
-	Mat CameraRGBimage=Mat::zeros(480,640,CV_8UC3);
+	//Mat CameraRGBimage=Mat::zeros(480,640,CV_8UC3);
 
-	Mat Depth;	
+	//Mat Depth=Mat::zeros(480,640,CV_16UC1);	
 
 	while(1)
 	{	
-		CameraRGBimage=wifi_comu_.receive_data_pc(CameraRGBimage);
+	Mat CameraRGBimage=Mat::zeros(480,640,CV_8UC3);
+
+	Mat Depth=Mat::zeros(480,640,CV_16UC1);
+		//CameraRGBimage=wifi_comu_.receive_data_pc(CameraRGBimage);
+		CameraRGBimage=wifi_comu_.receive_data_server_readv(CameraRGBimage,Depth);
+		//Depth=wifi_comu_.receive_data_pc(Depth);
 		imshow("WIFI picture",CameraRGBimage);
+		//imshow("WIFI depth",Depth);
 		waitKey(1);
 
 

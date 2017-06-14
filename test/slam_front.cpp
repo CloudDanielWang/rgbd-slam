@@ -105,6 +105,8 @@ void* vo_thread(void *arg)
         pFrame->color_ = color;
         pFrame->depth_ = depth;
 
+        //cv::imshow ( "VOFRAME", color);
+        //cv::waitKey ( 0);
         //数据集时所用时间戳
         pFrame->time_stamp_ = rgb_times[i];
         
@@ -120,8 +122,8 @@ void* vo_thread(void *arg)
             cout<<"This Frame is Not The KeyFrame!!!"<<endl;
             continue;
         }
-        //cout<<data.CameraImage.size()<<endl;
-        //cv::imshow ( "VOFRAME",  color);
+        //cout<<data.Depth.size()<<endl;
+        //cv::imshow ( "VOFRAME",  data.CameraImage);
         //cv::imshow ( "depth",  data.Depth);
         //cv::waitKey ( 0);
 //
@@ -156,24 +158,18 @@ void* wifi_thread(void *arg)
     wifi_comu_.wifi_init_uav();
 
     while(1)
-    {    //cout<<"wait.."<<endl;
+    {    
         pthread_mutex_lock(&mutex_data);        //对data互斥线程锁，以避免在对data判断期间VO线程的干扰
         int flag=data.CameraImage.empty();
-        
-         //cout<<flag<<endl;
          if (flag==0)
          {  
-            pthread_mutex_unlock(&mutex_data);
-            // wifi_comu_.SplitRGBMat(data.CameraImage, &data.ImageBlueChannel,  &data.ImageGreenChannel,  &data.ImageRedChannel);
 
         //cv::imshow("frame",data.CameraImage);
-        //cv::waitKey(1);
+        //cv::waitKey(0);
         cout<<"wifi send data begin"<<endl;
-        wifi_comu_.send_data_new(data.CameraImage);
-        //wifi_comu_.send_data_new(data.ImageBlueChannel);
-        //wifi_comu_.send_data_new(data.ImageGreenChannel);
-        //wifi_comu_.send_data_new(data.ImageRedChannel);
-        //wifi_comu_.send_data_new(data.Depth);
+        //wifi_comu_.send_data_new(data.CameraImage);
+        wifi_comu_.send_data_client_writev(data.CameraImage, data.Depth);
+       // wifi_comu_.send_data_new(data.Depth);
 
         cout<<"wifi send data finish"<<endl;
 
