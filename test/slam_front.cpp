@@ -83,20 +83,6 @@ void* vo_thread(void *arg)
         if ( color.data==nullptr || depth.data==nullptr )
             break;
         //TUM end
-        //Mat ImageBlueChannel;
-       // Mat ImageGreenChannel;
-        //Mat ImageRedChannel;
-
-        ///
-        //Converter converter;
-       // converter.SplitRGBMat(color, &ImageBlueChannel,  &ImageGreenChannel,  &ImageRedChannel);
-       // Mat mergemat=converter.MergeRGBMat(ImageBlueChannel,  ImageGreenChannel,  ImageRedChannel);
-       /*
-        imshow("ImageBlueChannel",ImageBlueChannel);
-        imshow("ImageGreenChannel",ImageGreenChannel);
-        imshow("ImageRedChannel",ImageRedChannel);
-        waitKey(0);
-        */
 
         ///
 
@@ -126,20 +112,7 @@ void* vo_thread(void *arg)
         //cv::imshow ( "VOFRAME",  data.CameraImage);
         //cv::imshow ( "depth",  data.Depth);
         //cv::waitKey ( 0);
-//
-/*      VO线程中WiFi发送图片测试程序段
-         wifi_comu_.SplitRGBMat(data.CameraImage, &data.ImageBlueChannel,  &data.ImageGreenChannel,  &data.ImageRedChannel);
 
-        
-        Mat grayframe;
-        cvtColor(color,grayframe,CV_RGB2GRAY);
-        cv::imshow ( "gray",  grayframe);
-        waitKey(0);
-        cout<<"wifi send data begin"<<endl;
-        wifi_comu_.send_data_new(grayframe);
-        cout<<"wifi send data finish"<<endl;
-*/
-//
 
        // Converter converter;
        // converter.se32char(pFrame->T_c_w_, &data.rotation_char, &data.translation_char);
@@ -166,12 +139,12 @@ void* wifi_thread(void *arg)
 
         //cv::imshow("frame",data.CameraImage);
         //cv::waitKey(0);
-        cout<<"wifi send data begin"<<endl;
+        //cout<<"wifi send data begin"<<endl;
         //wifi_comu_.send_data_new(data.CameraImage);
         wifi_comu_.send_data_client_writev(data.CameraImage, data.Depth);
        // wifi_comu_.send_data_new(data.Depth);
 
-        cout<<"wifi send data finish"<<endl;
+       // cout<<"wifi send data finish"<<endl;
 
         //cv::imshow("frame",data.CameraImage);
         //cv::waitKey(0);

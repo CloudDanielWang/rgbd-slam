@@ -11,31 +11,6 @@
 namespace acrbslam
 {
 
-	typedef struct
-	{
-		//float roll;
-		//float pitch;
-		//float yaw;
-
-
-		float x;
-		float y;
-		float z;
-
-		char *red;
-		char *green;
-		char *blue;
-		char *depth;
-
-		Mat rgb_mat;
-		Mat depth_mat;
-
-
-
-	}ACRB_WIFI_DATA_;
-
-
-
 class wifi_comu:public Frame, public Converter			//继承了frame类
 {
 	public:
@@ -75,13 +50,6 @@ class wifi_comu:public Frame, public Converter			//继承了frame类
 
 		Mat  receive_data_server_readv(Mat RGBframe, Mat Depthframe);
 		void send_data_client_writev(Mat RGBframe, Mat Depthframe);
-
-	public:
-		//data
-		//char red[307200];
-		//char green[307200];
-		//char blue[307200];
-		//char depth[76800];
 
 
 };

@@ -9,7 +9,7 @@ namespace acrbslam
 wifi_comu::wifi_comu()
 :send_time(0)
 {	
-	SERVER_PORT    	= Config::get<int> ( "SERVER_PORT" );
+	SERVER_PORT    = Config::get<int> ( "SERVER_PORT" );
 	CLIENT_PORT	= Config::get<int> ( "CLIENT_PORT" );
 
 	string  server_IP=Config::get<string> ( "SERVER_IP" );
@@ -26,28 +26,6 @@ wifi_comu::~wifi_comu()
 
 
 //wifi初始化函数
-/*
-{	
-	if((pc_sock=socket(AF_INET,SOCK_DGRAM,0))<0) //建立socket
-	{
-		printf("socket error\n");
-	}	
-
-	Local_Addr.sin_family = AF_INET;
-	Local_Addr.sin_port = htons(SERVER_PORT);
-	Local_Addr.sin_addr.s_addr = inet_addr(SERVER_IP);
-
-	if(bind(pc_sock,(struct sockaddr *)&Local_Addr,sizeof(Local_Addr))<0)
-	{	
-		printf("bind error\n");
-		perror("wifi_bind");
-		return ;
-	}
-	Remote_Addr.sin_family = AF_INET;
-	Remote_Addr.sin_port = htons(CLIENT_PORT);
-	Remote_Addr.sin_addr.s_addr = inet_addr(CLIENT_IP);
-}
-*/
 //根据CSDN 博客书写
 void wifi_comu::wifi_init_uav()
 {
@@ -104,7 +82,6 @@ void wifi_comu::wifi_init_pc()
 
 	socklen_t addr_len=sizeof(Client_Addr);
 
-
 	cout<<"Wait.."<<endl;
 	do
 	{
@@ -152,12 +129,10 @@ void wifi_comu::send_data_new(Mat frame)
 void wifi_comu::send_data_client_writev(Mat RGBframe, Mat Depthframe)
 {
 	const int rgbimgSize = RGBframe.total()*RGBframe.elemSize();
-	//cout<<"rgbimgSize"<<rgbimgSize<<endl;
 	const int depthSize = Depthframe.total()*Depthframe.elemSize();
-	//cout<<"depthSize"<<depthSize<<endl;
 
 
-	 struct iovec frame_data[2];
+	struct iovec frame_data[2];
            	frame_data[0].iov_base=RGBframe.data;
            	frame_data[0].iov_len=rgbimgSize;
            	frame_data[1].iov_base=Depthframe.data;
@@ -205,9 +180,11 @@ cv::Mat  wifi_comu::receive_data_server_readv(Mat RGBframe, Mat Depthframe)
 {
 	const int rgbimgSize = RGBframe.total()*RGBframe.elemSize();
 	 uchar RGBData[rgbimgSize];
+	 memset(RGBData,0,rgbimgSize);
 
 	const int depthSize = Depthframe.total()*Depthframe.elemSize();
 	uchar DepthData[depthSize];
+	memset(DepthData,0,depthSize);
 
 	 struct iovec frame_data[2];
            	frame_data[0].iov_base=RGBData;
