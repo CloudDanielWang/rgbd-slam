@@ -139,12 +139,12 @@ void* wifi_thread(void *arg)
 
         //cv::imshow("frame",data.CameraImage);
         //cv::waitKey(0);
-        //cout<<"wifi send data begin"<<endl;
+        cout<<"wifi send data begin"<<endl;
         //wifi_comu_.send_data_new(data.CameraImage);
         wifi_comu_.send_data_client_writev(data.CameraImage, data.Depth);
        // wifi_comu_.send_data_new(data.Depth);
 
-       // cout<<"wifi send data finish"<<endl;
+        cout<<"wifi send data finish"<<endl;
 
         //cv::imshow("frame",data.CameraImage);
         //cv::waitKey(0);

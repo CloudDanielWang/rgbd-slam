@@ -24,12 +24,13 @@ void *wifi_recv(void *arg)
 	Mat CameraRGBimage=Mat::zeros(480,640,CV_8UC3);
 
 	Mat Depth=Mat::zeros(480,640,CV_16UC1);
-		//CameraRGBimage=wifi_comu_.receive_data_pc(CameraRGBimage);
-		CameraRGBimage=wifi_comu_.receive_data_server_readv(CameraRGBimage,Depth);
+		//CameraRGBimage=wifi_comu_.receive_data_pc(CameraRGBimage);	//该函数使用正常，不错乱
+		//CameraRGBimage=wifi_comu_.receive_data_server_readv(CameraRGBimage,Depth);
+	wifi_comu_.receive_data_server_readv(&CameraRGBimage, &Depth);
 		//Depth=wifi_comu_.receive_data_pc(Depth);
-		imshow("WIFI picture",CameraRGBimage);
+		//imshow("WIFI picture",CameraRGBimage);
 		//imshow("WIFI depth",Depth);
-		waitKey(1);
+		//waitKey(1);
 
 
 	}

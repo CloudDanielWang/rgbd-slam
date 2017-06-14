@@ -129,19 +129,20 @@ void wifi_comu::send_data_new(Mat frame)
 void wifi_comu::send_data_client_writev(Mat RGBframe, Mat Depthframe)
 {
 	const int rgbimgSize = RGBframe.total()*RGBframe.elemSize();
+	//cout<<"rgbimgSize"<<rgbimgSize<<endl;
 	const int depthSize = Depthframe.total()*Depthframe.elemSize();
 
 
-	struct iovec frame_data[2];
+	struct iovec frame_data[1];
            	frame_data[0].iov_base=RGBframe.data;
            	frame_data[0].iov_len=rgbimgSize;
-           	frame_data[1].iov_base=Depthframe.data;
-           	frame_data[1].iov_len=depthSize;
+           	//frame_data[1].iov_base=Depthframe.data;
+           	//frame_data[1].iov_len=depthSize;
 
-	if((writev(server_sock,frame_data, 2))==-1)
-	{
-		printf("wifi_send_error\n");
-	}
+           	int sizeof_send_rgb_frame;
+	sizeof_send_rgb_frame=writev(server_sock,frame_data, 1);
+	//cout<<"sizeof_send_rgb_frame"<<sizeof_send_rgb_frame<<endl;
+
 
 	return;
 		
@@ -176,36 +177,52 @@ cv::Mat  wifi_comu::receive_data_pc(Mat frame)
 
 
 
-cv::Mat  wifi_comu::receive_data_server_readv(Mat RGBframe, Mat Depthframe)
+void  wifi_comu::receive_data_server_readv(Mat *RGBframe_, Mat *Depthframe_)
 {
+	
+	Mat RGBframe=*RGBframe_;
+	Mat Depthframe=*Depthframe_;
+
 	const int rgbimgSize = RGBframe.total()*RGBframe.elemSize();
 	 uchar RGBData[rgbimgSize];
-	 memset(RGBData,0,rgbimgSize);
+	 //memset(RGBData,0,rgbimgSize);
+
 
 	const int depthSize = Depthframe.total()*Depthframe.elemSize();
 	uchar DepthData[depthSize];
-	memset(DepthData,0,depthSize);
+	//memset(DepthData,0,depthSize);
 
-	 struct iovec frame_data[2];
+	 struct iovec frame_data[1];
            	frame_data[0].iov_base=RGBData;
            	frame_data[0].iov_len=rgbimgSize;
-           	frame_data[1].iov_base=DepthData;
-           	frame_data[1].iov_len=depthSize;
+           	//frame_data[1].iov_base=DepthData;
+           	//frame_data[1].iov_len=depthSize;
 
            	int bytes=0;
 
+	bytes=readv(client_sock,frame_data, 1 );
+	cout<<"size of bytes"<<bytes<<endl;
 
-	if((bytes=readv(client_sock,frame_data,2 ))==-1)
+
+	if (bytes==-1)
 	{
-		cout<<"Fault"<<endl;
+		cout<<"Receive Fault! "<<endl;
 		close(client_sock);
 		exit(-1);
-
 	}
-
+	else
+	if (bytes<rgbimgSize&&bytes>0) 
+	{
+		cout<<"this received data is too small!!"<<endl;
+		return;
+	}
+	
 	Mat temp_mat(Size(640,480), CV_8UC3, RGBData);
 	//Mat temp_depth_mat(Size(640,480), CV_16UC1, DepthData);
-	return temp_mat;
+	*RGBframe_=temp_mat;
+	imshow("WIFI picture",temp_mat);
+	waitKey(1);
+	return ;
 	//return temp_depth_mat;
 }
 

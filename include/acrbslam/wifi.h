@@ -48,7 +48,7 @@ class wifi_comu:public Frame, public Converter			//继承了frame类
 		//int  receive_data(char *data, long unsigned int num);		//WiFi接受数据函数
 		Mat  receive_data_pc(Mat frame);			//wifi pc 接受新函数
 
-		Mat  receive_data_server_readv(Mat RGBframe, Mat Depthframe);
+		void  receive_data_server_readv(Mat *RGBframe_, Mat *Depthframe_);
 		void send_data_client_writev(Mat RGBframe, Mat Depthframe);
 
 
