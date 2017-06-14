@@ -11,6 +11,7 @@ namespace acrbslam
 {
 //ACRB_WIFI_DATA_  ACRB_WIFI_DATA;
 acrbslam::Data data;    //数据存储类
+pthread_mutex_t mutex_data = PTHREAD_MUTEX_INITIALIZER; //互斥锁
 
 void* vo_thread(void *arg)
 {
@@ -57,8 +58,8 @@ void* vo_thread(void *arg)
 
 
     ///
-    wifi_comu wifi_comu_;
-    wifi_comu_.wifi_init_uav();
+   // wifi_comu wifi_comu_;
+    //wifi_comu_.wifi_init_uav();
 
     ///
 
@@ -99,7 +100,6 @@ void* vo_thread(void *arg)
 
         ///
 
-
         acrbslam::Frame::Ptr pFrame = acrbslam::Frame::createFrame();
         pFrame->camera_ = camera;
         pFrame->color_ = color;
@@ -111,17 +111,19 @@ void* vo_thread(void *arg)
 
         boost::timer timer;
        // vo->addFrame ( pFrame );
+        pthread_mutex_lock( &mutex_data );      //对data互斥锁住
         data=vo->addFrame(pFrame);
-        //data.CameraImage=pFrame->color_.clone();
+        pthread_mutex_unlock( &mutex_data);     //对data解锁
+
         if (data.CameraImage.empty())
         {
             cout<<"This Frame is Not The KeyFrame!!!"<<endl;
             continue;
         }
         //cout<<data.CameraImage.size()<<endl;
-        cv::imshow ( "image",  data.CameraImage);
+        //cv::imshow ( "VOFRAME",  color);
         //cv::imshow ( "depth",  data.Depth);
-        cv::waitKey ( 0);
+        //cv::waitKey ( 0);
 //
 /*      VO线程中WiFi发送图片测试程序段
          wifi_comu_.SplitRGBMat(data.CameraImage, &data.ImageBlueChannel,  &data.ImageGreenChannel,  &data.ImageRedChannel);
@@ -154,26 +156,33 @@ void* wifi_thread(void *arg)
     wifi_comu_.wifi_init_uav();
 
     while(1)
-    {   
-         if (!data.CameraImage.empty())
-         {
-             wifi_comu_.SplitRGBMat(data.CameraImage, &data.ImageBlueChannel,  &data.ImageGreenChannel,  &data.ImageRedChannel);
+    {    //cout<<"wait.."<<endl;
+        pthread_mutex_lock(&mutex_data);        //对data互斥线程锁，以避免在对data判断期间VO线程的干扰
+        int flag=data.CameraImage.empty();
+        
+         //cout<<flag<<endl;
+         if (flag==0)
+         {  
+            pthread_mutex_unlock(&mutex_data);
+            // wifi_comu_.SplitRGBMat(data.CameraImage, &data.ImageBlueChannel,  &data.ImageGreenChannel,  &data.ImageRedChannel);
 
+        //cv::imshow("frame",data.CameraImage);
+        //cv::waitKey(1);
         cout<<"wifi send data begin"<<endl;
-
-        wifi_comu_.send_data_new(data.ImageBlueChannel);
-       // wifi_comu_.send_data_new(data.ImageGreenChannel);
-       // wifi_comu_.send_data_new(data.ImageRedChannel);
+        wifi_comu_.send_data_new(data.CameraImage);
+        //wifi_comu_.send_data_new(data.ImageBlueChannel);
+        //wifi_comu_.send_data_new(data.ImageGreenChannel);
+        //wifi_comu_.send_data_new(data.ImageRedChannel);
         //wifi_comu_.send_data_new(data.Depth);
 
         cout<<"wifi send data finish"<<endl;
 
-        cv::imshow("frame",data.CameraImage);
-        cv::waitKey(0);
+        //cv::imshow("frame",data.CameraImage);
+        //cv::waitKey(0);
        
          }//endif 
 
-        
+        pthread_mutex_unlock(&mutex_data);      //互斥锁解锁
 
 
         
@@ -202,8 +211,9 @@ int main ( int argc, char** argv )
     pthread_t   thread_wifi;        void *retval_wifi;
     pthread_t   thread_vo;          void *retval_vo;
 
-   // int ret_wifi=pthread_create(&thread_wifi,NULL, acrbslam::wifi_thread, NULL);
+
     int ret_vo=pthread_create(&thread_vo,NULL,acrbslam::vo_thread,NULL);
+    int ret_wifi=pthread_create(&thread_wifi,NULL, acrbslam::wifi_thread, NULL);
 
     while(1);
     pthread_join(thread_wifi,&retval_wifi);

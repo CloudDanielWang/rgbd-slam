@@ -34,6 +34,7 @@ public:
 	char *rotation_char;
 	char * translation_char;
 
+
 public:
 	Data();
 	~Data();

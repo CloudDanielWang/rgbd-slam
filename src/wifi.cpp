@@ -52,18 +52,24 @@ wifi_comu::~wifi_comu()
 void wifi_comu::wifi_init_uav()
 {
 
-	if((pc_sock=socket(AF_INET,SOCK_STREAM,0))<0) //建立socket	//注意为STREAM类型
+	if((server_sock=socket(AF_INET,SOCK_STREAM,0))<0) //建立socket	//注意为STREAM类型
 	{
 		printf("socket error\n");
 	}	
 
 	Server_Addr.sin_family = AF_INET;
-	Server_Addr.sin_port = htons(SERVER_PORT);		//此处端口为地面站，即接收端的端口号，IP也是
+	Server_Addr.sin_port =htons(SERVER_PORT);		//此处端口为地面站，即接收端的端口号，IP也是
 	Server_Addr.sin_addr.s_addr = inet_addr(SERVER_IP);
+	SERVER_LEN=sizeof(Server_Addr);
 
-	if((connect(pc_sock,(struct sockaddr *)&Server_Addr,sizeof(Server_Addr)))<0)
-	
+	if((connect(server_sock,(struct sockaddr *)&Server_Addr,SERVER_LEN))<0)
+	{
 		perror("ERROR connecting");
+		close(server_sock);
+		exit(1);
+	}
+	
+		
 
 	return;
 	
@@ -73,36 +79,37 @@ void wifi_comu::wifi_init_uav()
 //wif函数接收端初始化
 void wifi_comu::wifi_init_pc()
 {
-	if((pc_sock=socket(AF_INET,SOCK_STREAM,0))<0) //建立socket
+	if((server_sock=socket(AF_INET,SOCK_STREAM,0))<0) //建立socket
 	{
 		printf("socket error\n");
 	}	
 
-	Client_Addr.sin_family = AF_INET;
-	Client_Addr.sin_port = htons(CLIENT_PORT);
-	Client_Addr.sin_addr.s_addr =INADDR_ANY;// inet_addr(CLIENT_IP);
+	Server_Addr.sin_family = AF_INET;
+	Server_Addr.sin_port = htons(SERVER_PORT);
+	Server_Addr.sin_addr.s_addr =htonl(INADDR_ANY);// inet_addr(CLIENT_IP);
+	SERVER_LEN=sizeof(Server_Addr);
 
-	if(bind(pc_sock,(struct sockaddr *)&Client_Addr,sizeof(Client_Addr))<0)		//此处为本地IP与端口
+	if(bind(server_sock,(struct sockaddr *)&Server_Addr,SERVER_LEN)<0)		//此处为本地IP与端口
 	{	
 		printf("bind error\n");
 		perror("wifi_bind");
 		return ;
 	}	
 
-	if(listen(pc_sock,5)==-1)
+	if(listen(server_sock,5)==-1)
 	{
 		printf("listen error\n");
 		return;
 	}
 
-	socklen_t addr_len=sizeof(Server_Addr);
+	socklen_t addr_len=sizeof(Client_Addr);
 
 
 	cout<<"Wait.."<<endl;
 	do
 	{
-		uav_sock=accept(pc_sock,(struct sockaddr*)&Server_Addr,&addr_len);
-	}while(uav_sock<0);
+		client_sock=accept(server_sock,(struct sockaddr*)&Client_Addr,&addr_len);
+	}while(client_sock<0);
 
 	return;
 }
@@ -122,52 +129,45 @@ void wifi_comu::send_data(char *data,unsigned int num)
 		
 }
 */
+
+
 //wifi发送新函数
 void wifi_comu::send_data_new(Mat frame)
 {
-	//if((send(pc_sock,frame.data, 307200,0))==-1)
-	if((send(pc_sock,frame.data, frame.total()*frame.elemSize(),0))==-1)
+	int imgSize = frame.total()*frame.elemSize();
+
+	if((write(server_sock,frame.data, imgSize))==-1)
 	{
 		printf("wifi_send_error\n");
 	}
-	cout<<"send finishied"<<endl;
+	//cout<<"send finishied"<<endl;
 	return;
 		
-	
 }
 
 //
 
-//wifi 接收数据函数
-/*
-int wifi_comu::receive_data(char *data, long unsigned int num)
-{
-	long unsigned int data_num=num;
-	int temp_data;
-	char *wifi_data=data;
-	socklen_t addr_len=sizeof(Remote_Addr);
 
-	temp_data=recvfrom(pc_sock,wifi_data,data_num,0,(struct sockaddr*)&Remote_Addr,&addr_len);
-	return temp_data;
-}
-*/
 
-//wifi pc端接收新函数
-cv::Mat  wifi_comu::receive_data_pc()
+//wifi server端接收新函数
+cv::Mat  wifi_comu::receive_data_pc(Mat frame)
 {
-	char receive_data[307200];
+	const int imgSize = frame.total()*frame.elemSize();
+	 uchar sockData[imgSize];
+
 	int bytes=0;
 
-	for (int i=0; i<307200; i+=bytes)
+	for (int i=0; i<imgSize; i+=bytes)
 	{
-		if((bytes=recv(pc_sock,receive_data+i, 307200-i, 0 ))==-1)
+		if((bytes=recv(client_sock,sockData+i, imgSize-i, 0 ))==-1)
 		{
 			cout<<"Fault"<<endl;
+			close(client_sock);
 			exit(-1);
 
 		}
 	}
-	Mat temp_mat(Size(640,480), CV_8UC1, receive_data);
+	Mat temp_mat(Size(640,480), CV_8UC3, sockData);
 	
 	return temp_mat;
 }

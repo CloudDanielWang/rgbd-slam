@@ -18,22 +18,16 @@ void *wifi_recv(void *arg)
 	Mat CameraRGBimage=Mat::zeros(480,640,CV_8UC3);
 
 	Mat Depth;	
-	Mat ImageBlueChannel=Mat::zeros(480,640,CV_8UC3);
-	Mat ImageGreenChannel;
-	Mat ImageRedChannel;
 
 	while(1)
 	{	
-
-		ImageBlueChannel=wifi_comu_.receive_data_pc();
-		//ImageGreenChannel=wifi_comu_.receive_data_pc();
-		//ImageRedChannel=wifi_comu_.receive_data_pc();
-		imshow("WIFI picture",ImageBlueChannel);
+		CameraRGBimage=wifi_comu_.receive_data_pc(CameraRGBimage);
+		imshow("WIFI picture",CameraRGBimage);
 		waitKey(1);
 
 
 	}
-	close(wifi_comu_.pc_sock);
+	close(wifi_comu_.server_sock);
 }
 
 
