@@ -9,9 +9,74 @@
 
 namespace acrbslam
 {
-//ACRB_WIFI_DATA_  ACRB_WIFI_DATA;
-acrbslam::Data data;    //数据存储类
-pthread_mutex_t mutex_data = PTHREAD_MUTEX_INITIALIZER; //互斥锁
+    acrbslam::Data data;    //数据存储类 
+
+    void* vo_thread(void *arg);
+    void* wifi_thread(void *arg);
+}   //namespace acrbslam 
+   
+    pthread_mutex_t mutex_data; //互斥锁
+    sem_t sem;
+
+
+
+
+int main ( int argc, char** argv )
+{
+    if ( argc != 2 )
+    {
+        cout<<"usage: run_vo parameter_file"<<endl;
+        return 1;
+    }
+    acrbslam::Config::setParameterFile ( argv[1] );     
+
+   // acrbslam::Data data;    //数据存储类 
+    //pthread_mutex_t mutex_data = PTHREAD_MUTEX_INITIALIZER; //互斥锁
+   // sem_t sem;
+    
+    int res;
+    res=pthread_mutex_init(&mutex_data, NULL);
+    if (res!=0)
+    {
+        perror("Mutex initialization failed");
+        exit(EXIT_FAILURE);
+    }
+   sem_init(&sem, 0, 0);//信号量初始化   
+
+
+    pthread_t   thread_wifi;        void *retval_wifi;
+    pthread_t   thread_vo;          void *retval_vo;
+
+
+    int ret_vo=pthread_create(&thread_vo,NULL,acrbslam::vo_thread,NULL);
+    if(ret_vo !=0)
+    {
+        perror("VO Thread Create  Failed");
+        exit(EXIT_FAILURE);
+    }
+
+    int ret_wifi=pthread_create(&thread_wifi,NULL, acrbslam::wifi_thread, NULL);
+    if(ret_wifi !=0)
+    {
+        perror("WIFI Thread Create  Failed");
+        exit(EXIT_FAILURE);
+    }
+
+    while(1);
+    
+    pthread_join(thread_vo,&retval_vo);
+    pthread_join(thread_wifi,&retval_wifi);
+      
+
+    return 0;
+}
+
+
+
+
+
+namespace acrbslam
+{
 
 void* vo_thread(void *arg)
 {
@@ -58,8 +123,8 @@ void* vo_thread(void *arg)
 
 
     ///
-   // wifi_comu wifi_comu_;
-    //wifi_comu_.wifi_init_uav();
+    //wifi_comu wifi_comu_;
+   // wifi_comu_.wifi_init_uav();
 
     ///
 
@@ -100,18 +165,24 @@ void* vo_thread(void *arg)
         boost::timer timer;
        // vo->addFrame ( pFrame );
         pthread_mutex_lock( &mutex_data );      //对data互斥锁住
+        //sem_wait(&sem);
         data=vo->addFrame(pFrame);
+        int data_use_flag=data.CameraImage.empty();
         pthread_mutex_unlock( &mutex_data);     //对data解锁
+       // sem_post(&sem);
 
-        if (data.CameraImage.empty())
+ //       if (data.CameraImage.empty())
+        if(data_use_flag==0)
         {
             cout<<"This Frame is Not The KeyFrame!!!"<<endl;
-            continue;
+            //continue;
         }
+        //wifi_comu_.send_data_client_writev(data.CameraImage, data.Depth);
+        // cout<<"wifi send data finish"<<endl;
         //cout<<data.Depth.size()<<endl;
         //cv::imshow ( "VOFRAME",  data.CameraImage);
         //cv::imshow ( "depth",  data.Depth);
-        //cv::waitKey ( 0);
+       // cv::waitKey ( 0);
 
 
        // Converter converter;
@@ -132,9 +203,11 @@ void* wifi_thread(void *arg)
 
     while(1)
     {    
+        
+       // sem_wait(&sem);
         pthread_mutex_lock(&mutex_data);        //对data互斥线程锁，以避免在对data判断期间VO线程的干扰
         int flag=data.CameraImage.empty();
-         if (flag==0)
+        if(flag==0)
          {  
 
         //cv::imshow("frame",data.CameraImage);
@@ -143,14 +216,13 @@ void* wifi_thread(void *arg)
         //wifi_comu_.send_data_new(data.CameraImage);
         wifi_comu_.send_data_client_writev(data.CameraImage, data.Depth);
        // wifi_comu_.send_data_new(data.Depth);
-
         cout<<"wifi send data finish"<<endl;
 
-        //cv::imshow("frame",data.CameraImage);
-        //cv::waitKey(0);
+        cv::imshow("wifi_send thread frame",data.CameraImage);
+        cv::waitKey(1);
        
          }//endif 
-
+        // sem_post(&sem);
         pthread_mutex_unlock(&mutex_data);      //互斥锁解锁
 
 
@@ -162,32 +234,3 @@ void* wifi_thread(void *arg)
 
 }   //namespace acrbslam
 
-
-
-
-
-
-int main ( int argc, char** argv )
-{
-    if ( argc != 2 )
-    {
-        cout<<"usage: run_vo parameter_file"<<endl;
-        return 1;
-    }
-    acrbslam::Config::setParameterFile ( argv[1] );     
-    
-
-    pthread_t   thread_wifi;        void *retval_wifi;
-    pthread_t   thread_vo;          void *retval_vo;
-
-
-    int ret_vo=pthread_create(&thread_vo,NULL,acrbslam::vo_thread,NULL);
-    int ret_wifi=pthread_create(&thread_wifi,NULL, acrbslam::wifi_thread, NULL);
-
-    while(1);
-    pthread_join(thread_wifi,&retval_wifi);
-    pthread_join(thread_vo,&retval_vo);
-      
-
-    return 0;
-}

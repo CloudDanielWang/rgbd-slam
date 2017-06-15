@@ -129,18 +129,18 @@ void wifi_comu::send_data_new(Mat frame)
 void wifi_comu::send_data_client_writev(Mat RGBframe, Mat Depthframe)
 {
 	const int rgbimgSize = RGBframe.total()*RGBframe.elemSize();
-	//cout<<"rgbimgSize"<<rgbimgSize<<endl;
+	//cout<<"send rgbimgSize"<<rgbimgSize<<endl;
 	const int depthSize = Depthframe.total()*Depthframe.elemSize();
+	//cout<<"send depthimgSize"<<depthSize<<endl;
 
-
-	struct iovec frame_data[1];
+	struct iovec frame_data[2];
            	frame_data[0].iov_base=RGBframe.data;
            	frame_data[0].iov_len=rgbimgSize;
-           	//frame_data[1].iov_base=Depthframe.data;
-           	//frame_data[1].iov_len=depthSize;
+           	frame_data[1].iov_base=Depthframe.data;
+           	frame_data[1].iov_len=depthSize;
 
-           	int sizeof_send_rgb_frame;
-	sizeof_send_rgb_frame=writev(server_sock,frame_data, 1);
+           	ssize_t  sizeof_send_rgb_frame;
+	sizeof_send_rgb_frame=writev(server_sock,frame_data, 2);
 	//cout<<"sizeof_send_rgb_frame"<<sizeof_send_rgb_frame<<endl;
 
 
@@ -192,15 +192,15 @@ void  wifi_comu::receive_data_server_readv(Mat *RGBframe_, Mat *Depthframe_)
 	uchar DepthData[depthSize];
 	//memset(DepthData,0,depthSize);
 
-	 struct iovec frame_data[1];
+	 struct iovec frame_data[2];
            	frame_data[0].iov_base=RGBData;
            	frame_data[0].iov_len=rgbimgSize;
-           	//frame_data[1].iov_base=DepthData;
-           	//frame_data[1].iov_len=depthSize;
+           	frame_data[1].iov_base=DepthData;
+           	frame_data[1].iov_len=depthSize;
 
-           	int bytes=0;
+           	ssize_t bytes=0;
 
-	bytes=readv(client_sock,frame_data, 1 );
+	bytes=readv(client_sock,frame_data, 2 );
 	cout<<"size of bytes"<<bytes<<endl;
 
 
@@ -211,19 +211,23 @@ void  wifi_comu::receive_data_server_readv(Mat *RGBframe_, Mat *Depthframe_)
 		exit(-1);
 	}
 	else
-	if (bytes<rgbimgSize&&bytes>0) 
+	if (bytes<(rgbimgSize+depthSize)&&bytes>0) 
+	//if ((bytes<rgbimgSize)&&bytes>0) 
 	{
 		cout<<"this received data is too small!!"<<endl;
 		return;
 	}
 	
-	Mat temp_mat(Size(640,480), CV_8UC3, RGBData);
-	//Mat temp_depth_mat(Size(640,480), CV_16UC1, DepthData);
-	*RGBframe_=temp_mat;
-	imshow("WIFI picture",temp_mat);
+	Mat temp_RGBmat(Size(640,480), CV_8UC3, RGBData);
+	Mat temp_DEPTHmat(Size(640,480), CV_16UC1, DepthData);
+	
+	*RGBframe_=temp_RGBmat;
+	*Depthframe_=temp_DEPTHmat;
+
+	imshow("WIFI picture",temp_RGBmat);
+	imshow("WIFI DepthData", temp_DEPTHmat);
 	waitKey(1);
 	return ;
-	//return temp_depth_mat;
 }
 
 

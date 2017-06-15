@@ -35,6 +35,7 @@ public:
 	char * translation_char;
 
 
+
 public:
 	Data();
 	~Data();

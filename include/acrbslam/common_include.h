@@ -78,6 +78,7 @@ using namespace pcl;
 #include <linux/spi/spidev.h>
 #include "stddef.h"
 #include <malloc.h>
+#include <semaphore.h> 
 ///
 
 
