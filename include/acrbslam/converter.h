@@ -19,6 +19,12 @@ public:
 	void mat2char(Converter converter, Mat mat_, char** char_);
 	void char2mat(Converter converter, Mat mat_, char** char_);
 
+	static Mat toCvMat(const SE3  &SE3);		
+	static Mat toCvMat(const Eigen::Matrix4d &m);
+	Eigen::Matrix4d toMatrix4d(const cv::Mat &cvMat4);
+	SE3 toSE3(const cv::Mat &cvT);
+	Affine3d toAffine3d(SE3 Twc);
+
 	void SplitRGBMat(Mat RGBMat, Mat *ImageBlueChannel, Mat *ImageGreenChannel, Mat *ImageRedChannel);	//将MAT融合成一个通道
 	Mat MergeRGBMat( Mat ImageBlueChannel, Mat ImageGreenChannel, Mat ImageRedChannel);			//将三个通道融合
 

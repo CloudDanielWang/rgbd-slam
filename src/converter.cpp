@@ -135,6 +135,74 @@ void Converter::se32char(Sophus::SE3 pose, char **rotation_char, char **translat
 }
 
 
+cv::Mat Converter::toCvMat(const SE3  &SE3)
+{
+    Eigen::Matrix4d  eigMat = SE3.matrix();
+    return toCvMat(eigMat);
+}
+
+cv::Mat Converter::toCvMat(const Eigen::Matrix4d &m)
+{
+    cv::Mat cvMat(4,4,CV_32F);
+    for(int i=0;i<4;i++)
+        for(int j=0; j<4; j++)
+            cvMat.at<float>(i,j)=m(i,j);
+
+    return cvMat.clone();
+}
+
+Eigen::Matrix4d Converter::toMatrix4d(const cv::Mat &cvMat4)
+{
+    Eigen::Matrix4d M;
+
+    M << cvMat4.at<float>(0,0), cvMat4.at<float>(0,1), cvMat4.at<float>(0,2),cvMat4.at<float>(0,3),
+         cvMat4.at<float>(1,0), cvMat4.at<float>(1,1), cvMat4.at<float>(1,2),cvMat4.at<float>(1,3),
+         cvMat4.at<float>(2,0), cvMat4.at<float>(2,1), cvMat4.at<float>(2,2),cvMat4.at<float>(2,3),
+         cvMat4.at<float>(3,0), cvMat4.at<float>(3,1), cvMat4.at<float>(3,2),cvMat4.at<float>(3,3);
+
+    return M;
+}
+
+SE3 Converter::toSE3(const cv::Mat &cvT)
+{
+    Eigen::Matrix<double,3,3> R;
+    R << cvT.at<float>(0,0), cvT.at<float>(0,1), cvT.at<float>(0,2),
+         cvT.at<float>(1,0), cvT.at<float>(1,1), cvT.at<float>(1,2),
+         cvT.at<float>(2,0), cvT.at<float>(2,1), cvT.at<float>(2,2);
+
+    Eigen::Matrix<double,3,1> t(cvT.at<float>(0,3), cvT.at<float>(1,3), cvT.at<float>(2,3));
+
+    return SE3(R,t);
+}
+
+Affine3d toAffine3d(SE3 Twc)
+{
+	cv::Affine3d M
+	(
+            		Affine3d::Mat3 
+            		(
+                		Twc.rotation_matrix() ( 0,0 ), Twc.rotation_matrix() ( 0,1 ), Twc.rotation_matrix() ( 0,2 ),
+               		Twc.rotation_matrix() ( 1,0 ), Twc.rotation_matrix() ( 1,1 ), Twc.rotation_matrix() ( 1,2 ),
+                		Twc.rotation_matrix() ( 2,0 ), Twc.rotation_matrix() ( 2,1 ), Twc.rotation_matrix() ( 2,2 )
+           		),
+           		 Affine3d::Vec3 
+           		(
+                		Twc.translation() ( 0,0 ), Twc.translation() ( 1,0 ), Twc.translation() ( 2,0 )
+            		)
+        	);
+	return M;
+}
+
+/*	未完成编写，仅供参考
+void Converter::SE32eigen(const SE3  T_c_w)
+{
+	transfomation = T_c_w.matrix();
+	rotation_estimate = transfomation.rotation();
+	translation_estimate=transfomation.translation();
+
+}
+*/
+
 void Converter::SplitRGBMat(Mat RGBMat, Mat *ImageBlueChannel, Mat *ImageGreenChannel, Mat *ImageRedChannel)
 {
 	vector<Mat> channels;
