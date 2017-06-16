@@ -175,7 +175,7 @@ SE3 Converter::toSE3(const cv::Mat &cvT)
     return SE3(R,t);
 }
 
-Affine3d toAffine3d(SE3 Twc)
+Affine3d Converter::toAffine3d(SE3 &Twc)
 {
 	cv::Affine3d M
 	(

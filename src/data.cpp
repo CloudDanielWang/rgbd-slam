@@ -5,11 +5,9 @@ namespace acrbslam
 
 Data::Data()
 {
-	Mat CameraImage=Mat::zeros(480,640,CV_8UC1);	
-	Mat Depth=Mat::zeros(240,320,CV_8UC1);		
-	Mat ImageBlueChannel=Mat::zeros(480,640,CV_8UC1);	
-	Mat ImageGreenChannel=Mat::zeros(480,640,CV_8UC1);	
-	Mat ImageRedChannel=Mat::zeros(480,640,CV_8UC1);
+	Mat CameraImage=Mat::zeros(480,640,CV_8UC3);	
+	Mat Depth=Mat::zeros(480,640,CV_16UC1);
+	Mat T_c_w_mat=Mat::zeros(4,4,CV_32F);		
 }
 
 Data::~Data()
@@ -23,20 +21,19 @@ void Data::inputData(Frame::Ptr frame)
 
 	CameraImage=frame->color_.clone();// 初始化时第一帧记为关键帧
 	Depth=frame->depth_.clone();
-	T_c_w=frame->T_c_w_;    
-	processingdata();
+	T_c_w=frame->T_c_w_; 
+	T_c_w_mat= toCvMat(T_c_w);  		//将SE3转化为MAT输入
 
 	return;
 
 }	
 
 
-void Data::processingdata()
-{
-	transfomation = T_c_w.matrix();
-	rotation_estimate = transfomation.rotation();
-	translation_estimate=transfomation.translation();
 
+Data Data::empty()
+{	
+	Data data;
+	return data;
 }
 
 

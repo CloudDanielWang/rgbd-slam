@@ -16,7 +16,6 @@ namespace acrbslam
 }   //namespace acrbslam 
    
     pthread_mutex_t mutex_data; //互斥锁
-    sem_t sem;
 
 
 
@@ -29,19 +28,13 @@ int main ( int argc, char** argv )
         return 1;
     }
     acrbslam::Config::setParameterFile ( argv[1] );     
-
-   // acrbslam::Data data;    //数据存储类 
-    //pthread_mutex_t mutex_data = PTHREAD_MUTEX_INITIALIZER; //互斥锁
-   // sem_t sem;
     
-    int res;
-    res=pthread_mutex_init(&mutex_data, NULL);
+    int res=pthread_mutex_init(&mutex_data, NULL);
     if (res!=0)
     {
         perror("Mutex initialization failed");
         exit(EXIT_FAILURE);
     }
-   sem_init(&sem, 0, 0);//信号量初始化   
 
 
     pthread_t   thread_wifi;        void *retval_wifi;
@@ -66,6 +59,8 @@ int main ( int argc, char** argv )
     
     pthread_join(thread_vo,&retval_vo);
     pthread_join(thread_wifi,&retval_wifi);
+
+
       
 
     return 0;
@@ -80,17 +75,13 @@ namespace acrbslam
 
 void* vo_thread(void *arg)
 {
-    //int x  =Config::get<int>("scan_frame_num");
-    //cout<<x<<endl;
-
     acrbslam::VisualOdometry::Ptr vo ( new acrbslam::VisualOdometry );
-
     acrbslam::Camera::Ptr camera ( new acrbslam::Camera );
-
 
 
     //openni 输入
     //VideoCapture capture(CV_CAP_OPENNI);    //设置视频的来源为OPENNI设备，即Kinect
+
 
 //数据集文件的读取部分
 //
@@ -117,7 +108,6 @@ void* vo_thread(void *arg)
         if ( fin.good() == false )
                  break;
 
-       
     }
 //数据集读取结束
 
@@ -156,8 +146,6 @@ void* vo_thread(void *arg)
         pFrame->color_ = color;
         pFrame->depth_ = depth;
 
-        //cv::imshow ( "VOFRAME", color);
-        //cv::waitKey ( 0);
         //数据集时所用时间戳
         pFrame->time_stamp_ = rgb_times[i];
         
@@ -165,17 +153,16 @@ void* vo_thread(void *arg)
         boost::timer timer;
        // vo->addFrame ( pFrame );
         pthread_mutex_lock( &mutex_data );      //对data互斥锁住
-        //sem_wait(&sem);
-        data=vo->addFrame(pFrame);
-        int data_use_flag=data.CameraImage.empty();
-        pthread_mutex_unlock( &mutex_data);     //对data解锁
-       // sem_post(&sem);
 
- //       if (data.CameraImage.empty())
-        if(data_use_flag==0)
+        data=vo->addFrame(pFrame);
+        int data_empty_flag=data.CameraImage.empty();
+
+        pthread_mutex_unlock( &mutex_data);     //对data解锁
+
+
+        if(data_empty_flag==0)
         {
             cout<<"This Frame is Not The KeyFrame!!!"<<endl;
-            //continue;
         }
         //wifi_comu_.send_data_client_writev(data.CameraImage, data.Depth);
         // cout<<"wifi send data finish"<<endl;
@@ -184,9 +171,6 @@ void* vo_thread(void *arg)
         //cv::imshow ( "depth",  data.Depth);
        // cv::waitKey ( 0);
 
-
-       // Converter converter;
-       // converter.se32char(pFrame->T_c_w_, &data.rotation_char, &data.translation_char);
         cout<<"VO costs time: "<<timer.elapsed() <<endl;
 
         if ( vo->state_ == acrbslam::VisualOdometry::LOST )
@@ -200,11 +184,11 @@ void* wifi_thread(void *arg)
 {   
     wifi_comu wifi_comu_;
     wifi_comu_.wifi_init_uav();
+    usleep(100);
 
     while(1)
     {    
         
-       // sem_wait(&sem);
         pthread_mutex_lock(&mutex_data);        //对data互斥线程锁，以避免在对data判断期间VO线程的干扰
         int flag=data.CameraImage.empty();
         if(flag==0)
@@ -212,20 +196,20 @@ void* wifi_thread(void *arg)
 
         //cv::imshow("frame",data.CameraImage);
         //cv::waitKey(0);
-        cout<<"wifi send data begin"<<endl;
-        //wifi_comu_.send_data_new(data.CameraImage);
-        wifi_comu_.send_data_client_writev(data.CameraImage, data.Depth);
-       // wifi_comu_.send_data_new(data.Depth);
-        cout<<"wifi send data finish"<<endl;
+        Eigen::Matrix4d translation=data.toMatrix4d(data.T_c_w_mat);
+        cout<<"translation"<<translation<<endl;
+       // cout<<"wifi send data begin"<<endl;
+        wifi_comu_.send_data_client_writev(data.CameraImage, data.Depth, data.T_c_w_mat);
+        //cout<<"wifi send data finish"<<endl;
+
 
         cv::imshow("wifi_send thread frame",data.CameraImage);
         cv::waitKey(1);
        
          }//endif 
-        // sem_post(&sem);
         pthread_mutex_unlock(&mutex_data);      //互斥锁解锁
 
-
+        usleep(100);
         
     }
 }

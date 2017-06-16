@@ -51,10 +51,7 @@ Data VisualOdometry::addFrame ( Frame::Ptr frame)
         extractKeyPoints();
         computeDescriptors();
         addKeyFrame();      // the first frame is a key-frame
-        //之后可以将数据的存储写进data的类函数中，便于调用
-        //data.CameraImage=frame->color_.clone();// 初始化时第一帧记为关键帧
-        //data.Depth=frame->depth_.clone();
-        data.inputData(frame);
+        data.inputData(frame);// 初始化时第一帧记为关键帧
         break;
     }
     case OK:
@@ -73,10 +70,7 @@ Data VisualOdometry::addFrame ( Frame::Ptr frame)
             if ( checkKeyFrame() == true ) // is a key-frame
             {
                 addKeyFrame();
-                //data.CameraImage=curr_->color_.clone();//         将关键帧的数据传输给DATA，便于传输
-                //data.Depth=curr_->depth_.clone();
-                //data.T_c_w=curr_->T_c_w_;                                   //传输SE3给DATA，后用转换函数进行转化
-                data.inputData(curr_);
+                data.inputData(curr_);      //将关键帧数据传输给DATA类
             }
         }
         else // bad estimation due to various reasons
@@ -87,7 +81,7 @@ Data VisualOdometry::addFrame ( Frame::Ptr frame)
                 state_ = LOST;
             }
             //return false;     //本身返回错误
-            return data;        //修改为返回数值，需要修改此部分！！！！可能需要在data类中添加错误返回函数
+            return data.empty();        //修改为返回初始data值，需要修改此部分！！！！可能需要在data类中添加错误返回函数
         }
         break;
     }
@@ -234,9 +228,9 @@ void VisualOdometry::poseEstimationPnP()
         pose->estimate().translation()
     );
         
-    Eigen::Isometry3d transfomation = pose->estimate(); 
-    Eigen::Matrix3d rotation_estimate = transfomation.rotation();
-    Eigen::Vector3d translation_estimate=transfomation.translation();
+    //Eigen::Isometry3d transfomation = pose->estimate(); 
+    //Eigen::Matrix3d rotation_estimate = transfomation.rotation();
+    //Eigen::Vector3d translation_estimate=transfomation.translation();
 
     
      //cout<<"rotation_estimate:\n "<<rotation_estimate.eulerAngles(2,0,1)*180/3.141592653<<endl;     //roll pitch raw
