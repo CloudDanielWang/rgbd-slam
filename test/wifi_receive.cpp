@@ -2,8 +2,7 @@
 #include <boost/timer.hpp>
 
 #include "acrbslam/config.h"
-//#include "acrbslam/visual_odometry.h"
-//#include "acrbslam/cloudmap.h"
+#include "acrbslam/cloudmap.h"
 #include "acrbslam/converter.h"
 #include "acrbslam/wifi.h"
 #include "acrbslam/data.h"
@@ -14,14 +13,15 @@ namespace acrbslam
 {
 void *wifi_recv(void *arg);
 void *viz_thread(void *arg);
-//viz::Viz3d viz_initialize();		
-//void viz_update(viz::Viz3d vis);
+void *pointcloud_thread(void *arg);
 
 }//namespace acrbslam
 
 
 acrbslam::Data data;	//数组初始化；
-sem_t sem;
+sem_t sem_viz;
+sem_t sem_cloud;
+
 
 
 int main(int argc, char** argv)
@@ -33,28 +33,34 @@ int main(int argc, char** argv)
    	 }
     	acrbslam::Config::setParameterFile ( argv[1] );    
 
-    	    //初始化信号量，其初值为0  
-    	if((sem_init(&sem, 0, 0)) == -1)  
+    	//初始化VIZ信号量，其初值为0  
+    	if((sem_init(&sem_viz, 0, 0)) == -1)  
     	{  
-      	perror("semaphore intitialization failed\n");  
+      	perror("semaphore of VIZ  intitialization failed\n");  
+       	exit(EXIT_FAILURE);  
+    	} 
+	//初始化VIZ信号量，其初值为0  
+    	if((sem_init(&sem_cloud, 0, 0)) == -1)  
+    	{  
+      	perror("semaphore of Cloud intitialization failed\n");  
        	exit(EXIT_FAILURE);  
     	} 
 
 
 	pthread_t thread_wifi_recv;	void *retval_wifi_recv;
 	pthread_t thread_viz_show;	void *retval_viz_show;
-	//pthread_t thread_pcl;
-	//void *retval_pcl;
+	pthread_t thread_pointcloud;	void *retval_pointcloud;
+
 
 	int ret_wifi=pthread_create(&thread_wifi_recv,NULL,acrbslam::wifi_recv,NULL);
 	int ret_viz=pthread_create(&thread_viz_show, NULL,acrbslam::viz_thread, NULL);
-	//int ret_pcl =pthread_create(&thread_pcl,NULL,pcl_3d,NULL);
+	int ret_pointcloud=pthread_create(&thread_pointcloud,NULL,acrbslam::pointcloud_thread,NULL);
 
 	while(1);
 
 	pthread_join(thread_wifi_recv,&retval_wifi_recv);
 	pthread_join(thread_viz_show,&retval_viz_show);
-	//pthread_join(thread_pcl,&retval_pcl);
+	pthread_join(thread_pointcloud,&retval_pointcloud);
 
 	return 0;
 
@@ -67,6 +73,17 @@ int main(int argc, char** argv)
 
 namespace acrbslam
 {
+
+void *viz_thread(void *arg)
+{
+	viz::Viz3d viz= viz_initialize();
+	while(1)
+	{
+		sem_wait(&sem_viz); 
+		viz_update(viz,data);
+	}
+}
+
 
 
 void *wifi_recv(void *arg)
@@ -81,7 +98,8 @@ void *wifi_recv(void *arg)
 	//CameraRGBimage=wifi_comu_.receive_data_pc(CameraRGBimage);	//该函数使用正常，不错乱
 	if(wifi_comu_.receive_data_server_readv(&data.CameraImage, &data.Depth, &data.T_c_w_mat))
 	{	
-		sem_post(&sem);//信号量加1
+		sem_post(&sem_viz);//信号量加1
+		sem_post(&sem_cloud);	//点云线程信号量加1
 
 		receive_count++;
 		cout<<"receive_count:"<<receive_count<<endl;
@@ -100,50 +118,31 @@ void *wifi_recv(void *arg)
 	close(wifi_comu_.server_sock);
 }
 
-
-/*
-viz::Viz3d viz_initialize()
+void *pointcloud_thread(void *arg)
 {
+	 pointCloud::Ptr pointCloud_all( new pointCloud ); //存放所有点云
+   	  	//pcl::visualization::CloudViewer viewer("cloudmap viewer");	//在线显示，不推荐开启
 
-	sleep(1);
-	cv::viz::Viz3d vis ( "Visual Odometry" );
-    	cv::viz::WCoordinateSystem world_coor ( 1.0 ), camera_coor ( 0.5 );
-    	cv::Point3d cam_pos ( 0, -1.0, -1.0 ), cam_focal_point ( 0,0,0 ), cam_y_dir ( 0,1,0 );
-    	cv::Affine3d cam_pose = cv::viz::makeCameraPose ( cam_pos, cam_focal_point, cam_y_dir );
-    	vis.setViewerPose ( cam_pose );
+	 while(1)
+	 {
+	 	sem_wait(&sem_cloud);
+		//draw cloudmap
+        		pointCloud_all=createPointCloud(data, pointCloud_all);	
+        		// viewer.showCloud( pointCloud_all );	 	//在线显示，不推荐开启
 
-    	world_coor.setRenderingProperty ( cv::viz::LINE_WIDTH, 2.0 );
-    	camera_coor.setRenderingProperty ( cv::viz::LINE_WIDTH, 1.0 );
-   	 vis.showWidget ( "World", world_coor );
-    	vis.showWidget ( "Camera", camera_coor );
+        		//判断完成接收，退出循环，保存点云数据的语句：
 
-    	return  vis;
+
+	 }
+	cout<<"点云大小为："<<pointCloud_all->size()<<"个点."<<endl;
+	cout<<"Saving..."<<endl;
+        	 pcl::io::savePCDFileBinary( "data/result.pcd", *pointCloud_all );
+        	 cout<<"Point Cloud Saving Finished"<<endl;
+         	// while( !viewer.wasStopped() )
+         	//{}
 
 }
 
-void viz_update(viz::Viz3d vis)
-{
-    	cv::Affine3d M;
-    	data.T_c_w=data.toSE3(data.T_c_w_mat);
-    	SE3 Twc = data.T_c_w.inverse();
-    	M=data.toAffine3d(Twc);
-    	vis.setWidgetPose ( "Camera", M );
-    	vis.spinOnce ( 1, false );
-    	return;
-}
-*/
-void *viz_thread(void *arg)
-{
-	viz::Viz3d viz= viz_initialize();
-	while(1)
-	{
-		sem_wait(&sem); 
-		viz_update(viz,data);
-
-	}
-
-
-}
 
    
 

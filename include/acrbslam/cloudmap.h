@@ -14,6 +14,13 @@
 
 
 
+    
+namespace acrbslam
+{
+	pointCloud::Ptr createPointCloud( acrbslam::Data data ,pointCloud::Ptr orginal_cloud);
+}// namespace acrbslam
+
+
 
 
 #endif
