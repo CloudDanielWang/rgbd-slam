@@ -157,6 +157,9 @@ void* vo_thread(void *arg)
         data=vo->addFrame(pFrame);
         data.frameID=i;
         int data_empty_flag=data.CameraImage.empty();
+        data.End_Flag=0;
+        if(i==vo->scan_frame_num_-1 ) {data.End_Flag=1;}
+        //cout<<"VO END flag"<<data.End_Flag<<endl;
 
         pthread_mutex_unlock( &mutex_data);     //对data解锁
 
@@ -165,18 +168,15 @@ void* vo_thread(void *arg)
         {
             cout<<"This Frame is Not The KeyFrame!!!"<<endl;
         }
-        //wifi_comu_.send_data_client_writev(data.CameraImage, data.Depth);
-        // cout<<"wifi send data finish"<<endl;
-        //cout<<data.Depth.size()<<endl;
-        //cv::imshow ( "VOFRAME",  data.CameraImage);
-        //cv::imshow ( "depth",  data.Depth);
-       // cv::waitKey ( 0);
+
 
         cout<<"VO costs time: "<<timer.elapsed() <<endl;
 
         if ( vo->state_ == acrbslam::VisualOdometry::LOST )
             break;
     }
+    //return;    //如何关闭线程？？
+
 
 }
 
@@ -194,16 +194,15 @@ void* wifi_thread(void *arg)
         int flag=data.CameraImage.empty();
         if(flag==0)
          {  
-
-        //cv::imshow("frame",data.CameraImage);
-        //cv::waitKey(0);
         //Eigen::Matrix4d translation=data.toMatrix4d(data.T_c_w_mat);
         //cout<<"translation"<<translation<<endl;
        // cout<<"wifi send data begin"<<endl;
         wifi_comu_.send_data_client_writev(data.CameraImage, data.Depth, data.T_c_w_mat);
+       // wifi_comu_.send_data_client_writev(data.CameraImage, data.Depth, data.T_c_w_mat, data.End_Flag);
         //cout<<"wifi send data finish"<<endl;
         cout<<"frameID:"<<data.frameID<<endl;
-
+        //cout<<"data.End_Flag:"<<data.End_Flag<<endl;
+        if(data.End_Flag==1) break;
 
        // cv::imshow("wifi_send thread frame",data.CameraImage);
         //cv::waitKey(1);
@@ -211,9 +210,12 @@ void* wifi_thread(void *arg)
          }//endif 
         pthread_mutex_unlock(&mutex_data);      //互斥锁解锁
 
-        usleep(10);
+        usleep(100);
         
     }
+    //return;
+        //pthread_mutex_unlock(&mutex_data);      //线程结束后，将互斥锁解锁，便于WiFi的最后一次发送
+    exit(1);
 }
 
 

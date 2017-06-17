@@ -9,6 +9,9 @@ Data::Data()
 	Mat CameraImage=Mat::zeros(480,640,CV_8UC3);	
 	Mat Depth=Mat::zeros(480,640,CV_16UC1);
 	Mat T_c_w_mat=Mat::zeros(4,4,CV_32F);		
+
+	//uchar End_Flag=0;
+	int End_Flag=0;
 }
 
 Data::~Data()

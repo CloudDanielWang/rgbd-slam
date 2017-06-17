@@ -53,7 +53,7 @@ int main(int argc, char** argv)
 
 
 	int ret_wifi=pthread_create(&thread_wifi_recv,NULL,acrbslam::wifi_recv,NULL);
-	int ret_viz=pthread_create(&thread_viz_show, NULL,acrbslam::viz_thread, NULL);
+	//int ret_viz=pthread_create(&thread_viz_show, NULL,acrbslam::viz_thread, NULL);
 	int ret_pointcloud=pthread_create(&thread_pointcloud,NULL,acrbslam::pointcloud_thread,NULL);
 
 	while(1);
@@ -81,6 +81,8 @@ void *viz_thread(void *arg)
 	{
 		sem_wait(&sem_viz); 
 		viz_update(viz,data);
+
+		//if(data.End_Flag==1) break;
 	}
 }
 
@@ -97,6 +99,7 @@ void *wifi_recv(void *arg)
 	{	
 	//CameraRGBimage=wifi_comu_.receive_data_pc(CameraRGBimage);	//该函数使用正常，不错乱
 	if(wifi_comu_.receive_data_server_readv(&data.CameraImage, &data.Depth, &data.T_c_w_mat))
+	//if(wifi_comu_.receive_data_server_readv(&data.CameraImage, &data.Depth, &data.T_c_w_mat, &data.End_Flag))
 	{	
 		sem_post(&sem_viz);//信号量加1
 		sem_post(&sem_cloud);	//点云线程信号量加1
@@ -104,12 +107,16 @@ void *wifi_recv(void *arg)
 		receive_count++;
 		cout<<"receive_count:"<<receive_count<<endl;
 
+		 cout<<"data.End_Flag:"<<data.End_Flag<<endl;
+
 		imshow("WIFI RGBData",data.CameraImage);
 		//imshow("WIFI DepthData", Depth);
 		waitKey(1);
 		//data.T_c_w=data.toSE3(data.T_c_w_mat);
 		//cout<<"TCW"<<data.T_c_w.matrix()<<endl;
-		//viz_update(viz);
+		
+		//if(data.End_Flag==1) break;
+		//else
 		continue;
 	}
 	
@@ -131,7 +138,7 @@ void *pointcloud_thread(void *arg)
         		// viewer.showCloud( pointCloud_all );	 	//在线显示，不推荐开启
 
         		//判断完成接收，退出循环，保存点云数据的语句：
-
+        		//if(data.End_Flag==1) break;
 
 	 }
 	cout<<"点云大小为："<<pointCloud_all->size()<<"个点."<<endl;
@@ -140,6 +147,8 @@ void *pointcloud_thread(void *arg)
         	 cout<<"Point Cloud Saving Finished"<<endl;
          	// while( !viewer.wasStopped() )
          	//{}
+        	 sleep(1);
+        	 exit(1);
 
 }
 

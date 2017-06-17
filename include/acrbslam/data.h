@@ -15,6 +15,9 @@ public:
 
 	int frameID;
 
+	//uchar  End_Flag;	//结束标志位
+	int End_Flag;
+
 	Mat CameraImage;	
 	Mat Depth;
 	Mat T_c_w_mat;		

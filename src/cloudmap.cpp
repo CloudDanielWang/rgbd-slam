@@ -42,8 +42,6 @@ pointCloud::Ptr createPointCloud( acrbslam::Frame::Ptr frame ,pointCloud::Ptr or
     voxel_filter.setInputCloud( current );
     voxel_filter.filter( *tmp );
     (*orginal_cloud) += *tmp;
-    cout<<"current cloud after filter size = "<<tmp->points.size()<<endl; 
-    cout<<"point cloud size = "<<orginal_cloud->points.size()<<endl;
   
 return orginal_cloud;
 
@@ -84,9 +82,7 @@ pointCloud::Ptr createPointCloud( acrbslam::Data data ,pointCloud::Ptr orginal_c
         }
     current->height = 1;
     current->width = current->points.size();
-     current->is_dense = false;
-
-      cout<<"current cloud size = "<<current->points.size()<<endl;
+    current->is_dense = false;
 
     // voxel filter 
     static pcl::VoxelGrid<PointT> voxel_filter; 
@@ -95,8 +91,6 @@ pointCloud::Ptr createPointCloud( acrbslam::Data data ,pointCloud::Ptr orginal_c
     voxel_filter.setInputCloud( current );
     voxel_filter.filter( *tmp );
     (*orginal_cloud) += *tmp;
-    cout<<"current cloud after filter size = "<<tmp->points.size()<<endl; 
-    cout<<"point cloud size = "<<orginal_cloud->points.size()<<endl;
   
 return orginal_cloud;
 
