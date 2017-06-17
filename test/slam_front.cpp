@@ -155,6 +155,7 @@ void* vo_thread(void *arg)
         pthread_mutex_lock( &mutex_data );      //对data互斥锁住
 
         data=vo->addFrame(pFrame);
+        data.frameID=i;
         int data_empty_flag=data.CameraImage.empty();
 
         pthread_mutex_unlock( &mutex_data);     //对data解锁
@@ -196,20 +197,21 @@ void* wifi_thread(void *arg)
 
         //cv::imshow("frame",data.CameraImage);
         //cv::waitKey(0);
-        Eigen::Matrix4d translation=data.toMatrix4d(data.T_c_w_mat);
-        cout<<"translation"<<translation<<endl;
+        //Eigen::Matrix4d translation=data.toMatrix4d(data.T_c_w_mat);
+        //cout<<"translation"<<translation<<endl;
        // cout<<"wifi send data begin"<<endl;
         wifi_comu_.send_data_client_writev(data.CameraImage, data.Depth, data.T_c_w_mat);
         //cout<<"wifi send data finish"<<endl;
+        cout<<"frameID:"<<data.frameID<<endl;
 
 
-        cv::imshow("wifi_send thread frame",data.CameraImage);
-        cv::waitKey(1);
+       // cv::imshow("wifi_send thread frame",data.CameraImage);
+        //cv::waitKey(1);
        
          }//endif 
         pthread_mutex_unlock(&mutex_data);      //互斥锁解锁
 
-        usleep(100);
+        usleep(10);
         
     }
 }
