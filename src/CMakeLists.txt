@@ -25,6 +25,7 @@ add_library(wifi wifi.cpp
     cloudmap.cpp
     converter.cpp
     data.cpp
+    viz.cpp
 )
 
 target_link_libraries( wifi
