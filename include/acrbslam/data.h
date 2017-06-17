@@ -13,6 +13,8 @@ class Data:public Converter
 {
 public:
 
+	int frameID;
+
 	Mat CameraImage;	
 	Mat Depth;
 	Mat T_c_w_mat;		

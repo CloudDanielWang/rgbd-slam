@@ -4,6 +4,7 @@ namespace acrbslam
 {
 
 Data::Data()
+:frameID(0)
 {
 	Mat CameraImage=Mat::zeros(480,640,CV_8UC3);	
 	Mat Depth=Mat::zeros(480,640,CV_16UC1);
