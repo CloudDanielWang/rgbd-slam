@@ -1,5 +1,5 @@
 # rgbd-slam
-TJU-ACRB Lab. the program of SLAM witch use ORB features and RGB-D camera.
+TJU-ACRB Lab. the program of SLAM which use ORB features and RGB-D camera.
 
 天津大学 ACRB实验室 基于ORB特征点和RGB-D摄像头的 slam 测试程序.
 
