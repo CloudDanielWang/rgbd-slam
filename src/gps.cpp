@@ -85,13 +85,14 @@ void GPS::gps_comu(Data data)
 	pthread_sigmask(SIG_BLOCK, &mask, NULL);  //主线程中需要把所有的信号屏蔽掉  如果不屏蔽掉 就会按系统的处理函数运行
 
 	int ttygps;
-	/////////////打开惯导串口///////////////////
+	/////////////打开串口///////////////////
 	if((ttygps = open(GPS_com_addr,O_RDWR|O_NOCTTY|O_NDELAY))==-1){
 		perror("打开串口失败");
 		//return NULL;
 	}   
 	if(fcntl(ttygps,F_SETFL,0)<0)
 		printf("fcntl=%d\n",fcntl(ttygps,F_SETFL,0));
+	//初始化串口
 	if(!gps_com_init(ttygps)){
 		perror("ttygps串口初始化失败");
 		//return NULL;
@@ -141,7 +142,8 @@ void GPS::gps_comu(Data data)
 		
 		//printf("DspData->x_dsp:%f,DspData->y_dsp:%f,lat_change,%f,lat lng %f,%f,##,%.6f  %.6f\n",DspData->x_dsp,DspData->y_dsp,lat_change,lat,lng,lat/10000000.0,lng/10000000.0);
 		//sprintf(temp,"GPGGA,%c%c%c%c%c%c.000,%9.4f,N,%10.4f,W,1,04,0.5,M,19.7,M,,,0000",hour[0],hour[1],min[0],min[1],sec[0],sec[1],lat,lng);
-		sprintf(temp,"GPGGA,%02ld%02ld%02ld.%03d,%02.0f%08.5f,N,%03.0f%08.5f,E,1,04,0.5,M,19.7,M,,,0000",hour_gps,min_gps,sec_gps,ms_gps,calcudeg(lat),calcumin(lat),calcudeg(lng),calcumin(lng));
+		//sprintf(temp,"GPGGA,%02ld%02ld%02ld.%03d,%02.0f%08.5f,N,%03.0f%08.5f,E,1,04,0.5,M,19.7,M,,,0000",hour_gps,min_gps,sec_gps,ms_gps,calcudeg(lat),calcumin(lat),calcudeg(lng),calcumin(lng));//未添加高度
+		sprintf(temp,"GPGGA,%02ld%02ld%02ld.%03d,%02.0f%08.5f,N,%03.0f%08.5f,E,1,04,0.5,%2.5f,M,19.7,M,,,0000",hour_gps,min_gps,sec_gps,ms_gps,calcudeg(lat),calcumin(lat),calcudeg(lng),calcumin(lng),data.z);//添加了高度
 		int ck = 0;
 		int i = 0;
 		while(temp[i]!='\0'){
