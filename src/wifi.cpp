@@ -30,7 +30,7 @@ wifi_comu::~wifi_comu()
 void wifi_comu::wifi_init_uav()
 {
 
-	if((server_sock=socket(AF_INET,SOCK_STREAM,0))<0) //建立socket	//注意为STREAM类型
+	if((server_sock=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP))<0) //建立socket	//注意为STREAM类型
 	{
 		printf("socket error\n");
 	}	
@@ -57,7 +57,7 @@ void wifi_comu::wifi_init_uav()
 //wif函数接收端初始化
 void wifi_comu::wifi_init_pc()
 {
-	if((server_sock=socket(AF_INET,SOCK_STREAM,0))<0) //建立socket
+	if((server_sock=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP))<0) //建立socket
 	{
 		printf("socket error\n");
 	}	
@@ -125,8 +125,8 @@ void wifi_comu::send_data_client_writev(Mat RGBframe, Mat Depthframe,  Mat Trans
 		
 }
 
-//void wifi_comu::send_data_client_writev(Mat RGBframe, Mat Depthframe,  Mat Transformation, uchar End_Flag)
-void wifi_comu::send_data_client_writev(Mat RGBframe, Mat Depthframe,  Mat Transformation, int End_Flag)
+void wifi_comu::send_data_client_writev(Mat RGBframe, Mat Depthframe,  Mat Transformation, uchar End_Flag)
+//void wifi_comu::send_data_client_writev(Mat RGBframe, Mat Depthframe,  Mat Transformation, int End_Flag)
 {
 	const int rgbimgSize = RGBframe.total()*RGBframe.elemSize();
 	//cout<<"send rgbimgSize"<<rgbimgSize<<endl;
@@ -150,7 +150,12 @@ void wifi_comu::send_data_client_writev(Mat RGBframe, Mat Depthframe,  Mat Trans
            	ssize_t  sizeof_send_rgb_frame;
 	sizeof_send_rgb_frame=writev(server_sock,frame_data, 4);
 	if(sizeof_send_rgb_frame==(rgbimgSize+depthSize+transformationSize+flagSize))
+	{
 		cout<<"Send Success!!"<<endl;
+		//cout<<"sizeof_send_rgb_frame:\t"<<sizeof_send_rgb_frame<<endl;
+	}
+	else if(sizeof_send_rgb_frame==-1)
+		perror("Send error");
 	//cout<<"sizeof_send_rgb_frame"<<sizeof_send_rgb_frame<<endl;
 
 
@@ -197,7 +202,8 @@ int  wifi_comu::receive_data_server_readv(Mat *RGBframe_, Mat *Depthframe_, Mat 
 
 	if (bytes==-1)
 	{
-		cout<<"Receive Fault! "<<endl;
+		//cout<<"Receive Fault! "<<endl;
+		perror("Receive Fault!");
 		close(client_sock);
 		exit(-1);
 	}
@@ -224,9 +230,9 @@ int  wifi_comu::receive_data_server_readv(Mat *RGBframe_, Mat *Depthframe_, Mat 
 }
 
 
-//int  wifi_comu::receive_data_server_readv(Mat *RGBframe_, Mat *Depthframe_, Mat *Transformation_, uchar *End_Flag)
-int  wifi_comu::receive_data_server_readv(Mat *RGBframe_, Mat *Depthframe_, Mat *Transformation_, int *End_Flag)
-{
+int  wifi_comu::receive_data_server_readv(Mat *RGBframe_, Mat *Depthframe_, Mat *Transformation_, uchar *End_Flag)
+//int  wifi_comu::receive_data_server_readv(Mat *RGBframe_, Mat *Depthframe_, Mat *Transformation_, int *End_Flag)
+{	
 	
 	Mat RGBframe=*RGBframe_;
 	Mat Depthframe=*Depthframe_;
@@ -243,8 +249,13 @@ int  wifi_comu::receive_data_server_readv(Mat *RGBframe_, Mat *Depthframe_, Mat 
 	const int transformationSize = Transformation.total()*Transformation.elemSize();
 	uchar TransformationData[transformationSize];
 
-	const int flagSize = sizeof(End_Flag);
+	//const int flagSize = sizeof(End_Flag);
+	const int flagSize = 1;
 	uchar End_Flag_Data[flagSize];
+
+	struct msghdr msg;//初始化发送信息
+	msg.msg_name = NULL;
+
 
 	 struct iovec frame_data[4];
            	frame_data[0].iov_base=RGBData;
@@ -256,12 +267,14 @@ int  wifi_comu::receive_data_server_readv(Mat *RGBframe_, Mat *Depthframe_, Mat 
            	frame_data[3].iov_base=End_Flag_Data;
            	frame_data[3].iov_len=flagSize;
 
-           	//cout<<"iovec size"<<sizeof(RGBData)+sizeof(DepthData)<<endl;
 
+           	msg.msg_iov = &frame_data[0];
+	msg.msg_iovlen = 4;
            	ssize_t bytes=0;
 
-	bytes=readv(client_sock,frame_data, 4 );
-	//cout<<"size of bytes"<<bytes<<endl;
+	//if(bytes=readv(client_sock,frame_data, 4))
+           	if(bytes=recvmsg(client_sock,&msg, 0))
+	cout<<"size of bytes"<<bytes<<endl;
 
 
 	if (bytes==-1)
@@ -273,17 +286,23 @@ int  wifi_comu::receive_data_server_readv(Mat *RGBframe_, Mat *Depthframe_, Mat 
 	else
 	if ((bytes<(rgbimgSize+depthSize+transformationSize+flagSize))&&(bytes>0)) 
 	{
-		//cout<<"this received data is too small!!"<<endl;
+		cout<<"this received data is too small!!"<<endl;
 		return 0;
 	}
 	else if (bytes==(rgbimgSize+depthSize+transformationSize+flagSize)) 
 		cout<<"Receive Success!!!"<<endl;
 	
+           	if (bytes==(rgbimgSize+depthSize+transformationSize+flagSize)) 
+		cout<<"Receive Success!!!"<<endl;
+
 	Mat temp_RGBmat(Size(640,480), CV_8UC3, RGBData);
 	Mat temp_DEPTHmat(Size(640,480), CV_16UC1, DepthData);
 	Mat temp_Transmat(Size(4,4),CV_32F,TransformationData);
 
-	int temp_End_Flag=atoi ((const char *)End_Flag_Data);
+	//cout<<"wifi cpp End_Flag_Data"<<End_Flag_Data[0]<<endl;
+	//int temp_End_Flag=atoi ((const char *)End_Flag_Data);
+	uchar temp_End_Flag=(uchar)End_Flag_Data[0];
+
 
 	
 	*RGBframe_=temp_RGBmat;

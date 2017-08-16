@@ -10,8 +10,12 @@ Data::Data()
 	Mat Depth=Mat::zeros(480,640,CV_16UC1);
 	Mat T_c_w_mat=Mat::zeros(4,4,CV_32F);		
 
-	//uchar End_Flag=0;
-	int End_Flag=0;
+	uchar End_Flag='0';
+	//int End_Flag=0;
+	x=0;
+	y=0;
+	z=0;
+
 }
 
 Data::~Data()
@@ -27,6 +31,11 @@ void Data::inputData(Frame::Ptr frame)
 	Depth=frame->depth_.clone();
 	T_c_w=frame->T_c_w_; 
 	T_c_w_mat= toCvMat(T_c_w);  		//将SE3转化为MAT输入
+
+	//将TCW提取出xyz
+	x=T_c_w.translation()(0,0);
+	y=T_c_w.translation()(1,0);
+	z=T_c_w.translation()(2,0);
 
 	return;
 

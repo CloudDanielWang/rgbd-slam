@@ -1,3 +1,5 @@
+//本测试程序，仅实现UAV在原地定点的位置控制
+
 #include <fstream>
 #include <boost/timer.hpp>
 
@@ -6,6 +8,12 @@
 #include "acrbslam/cloudmap.h"
 #include "acrbslam/wifi.h"
 #include "acrbslam/data.h"
+#include "acrbslam/timer.h"
+#include "acrbslam/gps.h"
+
+
+double Clock_Begin;
+
 
 namespace acrbslam
 {
@@ -13,8 +21,8 @@ namespace acrbslam
 
     void* vo_thread(void *arg);
     void* wifi_thread(void *arg);
+    void* gps_thread(void *arg);
 
-    //void *pointcloud_thread(void *arg);
 }   //namespace acrbslam 
    
     pthread_mutex_t mutex_data; //互斥锁
@@ -24,6 +32,9 @@ namespace acrbslam
 
 int main ( int argc, char** argv )
 {
+    Clock_Begin=acrbslam::pm_msec();   
+
+
     if ( argc != 2 )
     {
         cout<<"usage: run_vo parameter_file"<<endl;
@@ -39,14 +50,18 @@ int main ( int argc, char** argv )
     }
 
 
-    pthread_t   thread_wifi;        void *retval_wifi;
+    pthread_t   thread_gps;        void *retval_gps;
     pthread_t   thread_vo;          void *retval_vo;
 
-/*
-//test cloudmap thread
-    pthread_t thread_pointcloud;    void *retval_pointcloud;
-    int ret_pointcloud=pthread_create(&thread_pointcloud,NULL,acrbslam::pointcloud_thread,NULL);
-  */  
+    //
+
+    sigset_t  mask;    //主线程中需要把所有的信号屏蔽掉  如果不屏蔽掉 就会按系统的处理函数运行
+    sigfillset(&mask);
+    sigdelset(&mask,SIGINT);
+    sigdelset(&mask,SIGQUIT);
+    pthread_sigmask(SIG_BLOCK, &mask, NULL);  //主线程中需要把所有的信号屏蔽掉  如果不屏蔽掉 就会按系统的处理函数运行
+
+    //
 
 
     int ret_vo=pthread_create(&thread_vo,NULL,acrbslam::vo_thread,NULL);
@@ -56,19 +71,18 @@ int main ( int argc, char** argv )
         exit(EXIT_FAILURE);
     }
 
-    int ret_wifi=pthread_create(&thread_wifi,NULL, acrbslam::wifi_thread, NULL);
-    if(ret_wifi !=0)
+    int ret_gps=pthread_create(&thread_gps,NULL, acrbslam::gps_thread, NULL);
+    if(ret_gps !=0)
     {
-        perror("WIFI Thread Create  Failed");
+        perror("GPS Thread Create  Failed");
         exit(EXIT_FAILURE);
     }
+    acrbslam::acrb_timmer_create(100, 5, SIGRTMAX-5);//gps线程使用信号，20HZ
 
     while(1);
     
     pthread_join(thread_vo,&retval_vo);
-    pthread_join(thread_wifi,&retval_wifi);
-
-    //pthread_join(thread_pointcloud,&retval_pointcloud);
+    pthread_join(thread_gps,&retval_gps);
       
 
     return 0;
@@ -118,13 +132,6 @@ void* vo_thread(void *arg)
 
     }
 //数据集读取结束
-
-
-    ///
-    //wifi_comu wifi_comu_;
-   // wifi_comu_.wifi_init_uav();
-
-    ///
 
 
        for ( int i=0; i<vo->scan_frame_num_ ; i++ )       //循环次数取决与参数文件中的数值
@@ -183,12 +190,25 @@ void* vo_thread(void *arg)
         if ( vo->state_ == acrbslam::VisualOdometry::LOST )
             break;
     }
-    //return;    //如何关闭线程？？
         cout<<"VO Thread Exit"<<endl;
 
 }
 
 
+void* gps_thread(void *arg)
+{
+    GPS gps;
+    gps.gps_comu(data);
+
+}
+
+
+
+
+
+
+
+/*
 void* wifi_thread(void *arg)
 {   
     wifi_comu wifi_comu_;
@@ -233,37 +253,10 @@ void* wifi_thread(void *arg)
         //pthread_mutex_unlock(&mutex_data);      //线程结束后，将互斥锁解锁，便于WiFi的最后一次发送
     exit(1);
 }
-
-
-/*
-void *pointcloud_thread(void *arg)
-{
-     pointCloud::Ptr pointCloud_all( new pointCloud ); //存放所有点云
-        pcl::visualization::CloudViewer viewer("cloudmap viewer");    //在线显示，不推荐开启
-
-     while(1)
-     {
-         pthread_mutex_lock(&mutex_data);        //对data互斥线程锁，以避免在对data判断期间VO线程的干扰
-        //draw cloudmap
-                pointCloud_all=createPointCloud(data, pointCloud_all);  
-                 viewer.showCloud( pointCloud_all );      //在线显示，不推荐开启
-                pthread_mutex_unlock(&mutex_data);  
-                usleep(10);
-                //判断完成接收，退出循环，保存点云数据的语句：
-                if(data.End_Flag=='1') break;
-
-     }
-    cout<<"点云大小为："<<pointCloud_all->size()<<"个点."<<endl;
-    cout<<"Saving..."<<endl;
-             pcl::io::savePCDFileBinary( "data/result.pcd", *pointCloud_all );
-             cout<<"Point Cloud Saving Finished"<<endl;
-             while( !viewer.wasStopped() )
-            {}
-             sleep(1);
-             exit(1);
-
-}
 */
+
+
+
 
 }   //namespace acrbslam
 

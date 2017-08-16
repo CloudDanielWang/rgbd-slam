@@ -82,7 +82,7 @@ void *viz_thread(void *arg)
 		sem_wait(&sem_viz); 
 		viz_update(viz,data);
 
-		//if(data.End_Flag==1) break;
+		if(data.End_Flag=='1') break;
 	}
 }
 
@@ -92,43 +92,46 @@ void *wifi_recv(void *arg)
 {
 	wifi_comu wifi_comu_;
     	wifi_comu_.wifi_init_pc();	 
-    	//viz::Viz3d viz= viz_initialize();
+    	viz::Viz3d viz= viz_initialize();
     	int receive_count=0;
     	
 	while(1)
 	{	
 	//CameraRGBimage=wifi_comu_.receive_data_pc(CameraRGBimage);	//该函数使用正常，不错乱
-	if(wifi_comu_.receive_data_server_readv(&data.CameraImage, &data.Depth, &data.T_c_w_mat))
-	//if(wifi_comu_.receive_data_server_readv(&data.CameraImage, &data.Depth, &data.T_c_w_mat, &data.End_Flag))
+	//if(wifi_comu_.receive_data_server_readv(&data.CameraImage, &data.Depth, &data.T_c_w_mat))
+	if(wifi_comu_.receive_data_server_readv(&data.CameraImage, &data.Depth, &data.T_c_w_mat, &data.End_Flag))
 	{	
 		sem_post(&sem_viz);//信号量加1
 		sem_post(&sem_cloud);	//点云线程信号量加1
 
-		receive_count++;
-		cout<<"receive_count:"<<receive_count<<endl;
+		//receive_count++;
+		//cout<<"receive_count:"<<receive_count<<endl;
 
 		 cout<<"data.End_Flag:"<<data.End_Flag<<endl;
 
-		imshow("WIFI RGBData",data.CameraImage);
-		//imshow("WIFI DepthData", Depth);
-		waitKey(1);
+		//imshow("WIFI RGBData",data.CameraImage);
+		//imshow("WIFI DepthData", data.Depth);
+		//waitKey(10);
 		//data.T_c_w=data.toSE3(data.T_c_w_mat);
 		//cout<<"TCW"<<data.T_c_w.matrix()<<endl;
 		
-		//if(data.End_Flag==1) break;
+		if(data.End_Flag=='1') break;
 		//else
-		continue;
+		//continue;
 	}
-	
+	if(data.End_Flag=='1') break;
 
 	}
 	close(wifi_comu_.server_sock);
+	cout<<"Close the Wifi Receive Thread"<<endl;
 }
 
 void *pointcloud_thread(void *arg)
 {
 	 pointCloud::Ptr pointCloud_all( new pointCloud ); //存放所有点云
-   	  	//pcl::visualization::CloudViewer viewer("cloudmap viewer");	//在线显示，不推荐开启
+   	 
+   	 //sleep(3); 
+   	// pcl::visualization::CloudViewer viewer("cloudmap viewer");	//在线显示，不推荐开启
 
 	 while(1)
 	 {
@@ -138,7 +141,7 @@ void *pointcloud_thread(void *arg)
         		// viewer.showCloud( pointCloud_all );	 	//在线显示，不推荐开启
 
         		//判断完成接收，退出循环，保存点云数据的语句：
-        		//if(data.End_Flag==1) break;
+        		if(data.End_Flag=='1') break;
 
 	 }
 	cout<<"点云大小为："<<pointCloud_all->size()<<"个点."<<endl;
