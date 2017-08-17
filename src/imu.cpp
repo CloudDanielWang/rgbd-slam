@@ -3,19 +3,25 @@
 namespace acrbslam
 {
 
-void imu_com::com_init()
+imu_com::imu_com()
 {
-	if((ttyusb0_fd=open("/dev/ttyUSB0",O_RDWR|O_NOCTTY|O_NDELAY))==-1)
+	string imu_com_addr=Config::get<string> ( "imu_com_addr" );
+	IMU_com_addr=imu_com_addr.c_str();
+}
+
+void imu_com::imu_com_init()
+{
+	if((ttyimu=open(IMU_com_addr,O_RDWR|O_NOCTTY|O_NDELAY))==-1)
 	{
 		perror("打开串口失败");
 	}
 
-	if(fcntl(ttyusb0_fd,F_SETFL,0)<0)
-		printf("fcntl error");
+	if(fcntl(ttyimu,F_SETFL,0)<0)
+		printf("fcntl=%d\n",fcntl(ttyimu,F_SETFL,0));
 
 	struct termios newtio;
 	struct termios oldtio;
-	tcgetattr(ttyusb0_fd,&oldtio);
+	tcgetattr(ttyimu,&oldtio);
 	bzero(&newtio,sizeof(newtio));
 
 	newtio.c_cflag |=CLOCAL|CREAD;
@@ -29,10 +35,10 @@ void imu_com::com_init()
   
 	newtio.c_cc[VTIME] = 0;
 	newtio.c_cc[VMIN] = 1;
-	tcdrain(ttyusb0_fd);
-	tcflush(ttyusb0_fd,TCIOFLUSH);
+	tcdrain(ttyimu);
+	tcflush(ttyimu,TCIOFLUSH);
   
-	if((tcsetattr(ttyusb0_fd,TCSANOW,&newtio))!=0)
+	if((tcsetattr(ttyimu,TCSANOW,&newtio))!=0)
 	{
 		perror("com set error");
 	} 	
@@ -48,7 +54,7 @@ void imu_com::get_attitude(double *att1,double *att2,double *att3)
 
 	while(1)
 	{
-		nread=read(ttyusb0_fd,&imu_store,1);	
+		nread=read(ttyimu,&imu_store,1);	
 		if(imu_store!='s')
 		{
 			continue;
@@ -57,7 +63,7 @@ void imu_com::get_attitude(double *att1,double *att2,double *att3)
 		pos = new char[100]; 
 		while(1)
 			{
-				nread=read(ttyusb0_fd,&imu_store,1);
+				nread=read(ttyimu,&imu_store,1);
 				if(imu_store=='t')
 				{
 					printf("end\n");
@@ -75,7 +81,7 @@ void imu_com::get_attitude(double *att1,double *att2,double *att3)
 		*att3=(double)imu_yaw;
 		delete []pos;
 	}
-	close(ttyusb0_fd);
+	close(ttyimu);
 	
 }
 
