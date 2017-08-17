@@ -54,7 +54,7 @@ public: // functions
     ~VisualOdometry();
     
     //bool addFrame( Frame::Ptr frame);      // add a new frame 
-    Data addFrame(Frame::Ptr frame);
+    Data addFrame(Frame::Ptr frame, Data data);
     
 protected:  
     // inner operation 
