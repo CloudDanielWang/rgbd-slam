@@ -138,13 +138,15 @@ void GPS::gps_comu(Data *data)
 		double lng_change = 100.0*(DspData->y_dsp);
 		lat = lat_base+lat_change;
 		lng = lng_base+lng_change;*/
-		float rads = fabs(lat_base)/10000000.0*0.0174532925;
-		lat = lat_base+100.0*data->x;
-		lng = (lng_base+100.0*data->y);///cos(rads);
+		//float rads = fabs(lat_base)/10000000.0*0.0174532925;
+		//lat = lat_base+100.0*data->x;		//垚哥程序中的100原因未知
+		lat = lat_base+125.17*data->x;	//此处的倍数是通过谷歌地球GPS数据在同济大学体育场的篮球场估算可得
+		//lng = (lng_base+100.0*data->y);///cos(rads);
+		lng = (lng_base+89.9346*data->y);//同为估算
 		
-		cout<<"x"<<'\t'<<data->x<<endl;
-		cout<<"y"<<'\t'<<data->y<<endl;
-		cout<<"z"<<'\t'<<data->z<<endl;
+		//cout<<"x"<<'\t'<<data->x<<endl;
+		//cout<<"y"<<'\t'<<data->y<<endl;
+		//cout<<"z"<<'\t'<<data->z<<endl;
 
 		cout<<"lat,deg"<<'\t'<<calcudeg(lat)<<endl;
 		
