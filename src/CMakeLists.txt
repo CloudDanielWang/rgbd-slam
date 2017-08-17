@@ -41,6 +41,7 @@ add_library(front_end
     data.cpp
     timer.cpp
     gps.cpp
+    imu.cpp
 )
 
 target_link_libraries( front_end 

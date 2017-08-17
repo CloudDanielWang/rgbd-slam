@@ -1,7 +1,7 @@
 %YAML:1.0		
 #此句话不可删除
 
-dataset_dir:/home/cloud/scm/SLAM/slamprogram-git/rgbd-slam/data
+dataset_dir:/home/acrb/scm/program/wzy/rgbd-slam/data
 
 # camera intrinsics
 # camera
@@ -30,3 +30,9 @@ SERVER_PORT: 6000
 CLIENT_PORT: 7000
 SERVER_IP: "127.0.0.1"
 CLIENT_IP: "127.0.0.1"
+
+#GPS Parameters
+gps_com_addr: "ttyUSB1"
+
+#IMU Parameters
+imu_com_addr: "ttuUSB2"
