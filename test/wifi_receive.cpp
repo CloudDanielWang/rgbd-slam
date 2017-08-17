@@ -54,7 +54,7 @@ int main(int argc, char** argv)
 
 	int ret_wifi=pthread_create(&thread_wifi_recv,NULL,acrbslam::wifi_recv,NULL);
 	//int ret_viz=pthread_create(&thread_viz_show, NULL,acrbslam::viz_thread, NULL);
-	int ret_pointcloud=pthread_create(&thread_pointcloud,NULL,acrbslam::pointcloud_thread,NULL);
+	//int ret_pointcloud=pthread_create(&thread_pointcloud,NULL,acrbslam::pointcloud_thread,NULL);
 
 	while(1);
 
@@ -117,7 +117,7 @@ void *wifi_recv(void *arg)
 		
 		//if(data.End_Flag==1) break;
 		//else
-		continue;
+		//continue;
 	}
 	
 

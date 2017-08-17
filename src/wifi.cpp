@@ -205,8 +205,8 @@ int  wifi_comu::receive_data_server_readv(Mat *RGBframe_, Mat *Depthframe_, Mat 
 	if (bytes<(rgbimgSize+depthSize+transformationSize)&&bytes>0) 
 	//if ((bytes<rgbimgSize)&&bytes>0) 
 	{
-		//cout<<"this received data is too small!!"<<endl;
-		return 0;
+		cout<<"this received data is too small!!"<<endl;
+		return 1;
 	}
 	else if (bytes==(rgbimgSize+depthSize+transformationSize)) 
 		cout<<"Receive Success!!!"<<endl;
