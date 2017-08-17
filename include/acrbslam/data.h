@@ -15,8 +15,8 @@ public:
 
 	int frameID;
 
-	//uchar  End_Flag;	//结束标志位
-	int End_Flag;
+	uchar  End_Flag;	//结束标志位
+	//int End_Flag;
 
 	Mat CameraImage;	
 	Mat Depth;
@@ -26,6 +26,8 @@ public:
 	Eigen::Isometry3d transfomation;
 	Eigen::Matrix3d rotation_estimate;
 	Eigen::Vector3d translation_estimate;
+
+	float x,y,z;
 
 
 
