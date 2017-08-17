@@ -17,10 +17,10 @@ double Clock_Begin;
 
 namespace acrbslam
 {
-    acrbslam::Data data;    //数据存储类 
+    Data data;    //数据存储类 
 
     void* vo_thread(void *arg);
-    void* wifi_thread(void *arg);
+    //void* wifi_thread(void *arg);
     void* gps_thread(void *arg);
 
 }   //namespace acrbslam 
@@ -163,13 +163,16 @@ void* vo_thread(void *arg)
 
         //数据集时所用时间戳
         pFrame->time_stamp_ = rgb_times[i];
+
+        //imshow("camera_RGB",pFrame->color_);
+        //waitKey(0);
         
 
         boost::timer timer;
        // vo->addFrame ( pFrame );
         pthread_mutex_lock( &mutex_data );      //对data互斥锁住
 
-        data=vo->addFrame(pFrame);
+        data=vo->addFrame(pFrame,data);
         data.frameID=i;
         int data_empty_flag=data.CameraImage.empty();
         data.End_Flag='0';
@@ -198,7 +201,8 @@ void* vo_thread(void *arg)
 void* gps_thread(void *arg)
 {
     GPS gps;
-    gps.gps_comu(data);
+        cout<<"tcw_x"<<'\t'<<data.x<<endl;
+    gps.gps_comu(&data);
 
 }
 

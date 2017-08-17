@@ -16,7 +16,7 @@ class GPS
 
 	GPS();
 
-	void gps_comu(Data data);	//数据传输函数
+	void gps_comu(Data *data);	//数据传输函数
 
 	int gps_com_init(int fd);    //配置串口,串口初始化
 

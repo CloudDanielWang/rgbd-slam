@@ -75,7 +75,7 @@ double GPS::calcudeg(double degree)
 }
 
 
-void GPS::gps_comu(Data data)
+void GPS::gps_comu(Data *data)
 { 
 
 	sigset_t              mask;    //主线程中需要把所有的信号屏蔽掉  
@@ -102,8 +102,8 @@ void GPS::gps_comu(Data data)
 	float lng_deg_base = 12247.4841;*/
 	/*double lat_base = 489398830;
 	double lng_base = 1227914010;*/
-	double lat_base = 391079188;
-	double lng_base = 1171730089;
+	double lat_base = 391079188;//39.10623110569929
+	double lng_base = 1171730089;//117.17011277139659
 
 	double lat;
 	double lng;
@@ -116,7 +116,10 @@ void GPS::gps_comu(Data data)
 
 	double time_ms_base = pm_msec();
 
-	while(1){ 
+
+
+	while(1)
+	{ 
 		sigwait(&mask,&signo);           //等待主线程时钟信号
 			
 		double time_ms_now = pm_msec();
@@ -136,21 +139,38 @@ void GPS::gps_comu(Data data)
 		lat = lat_base+lat_change;
 		lng = lng_base+lng_change;*/
 		float rads = fabs(lat_base)/10000000.0*0.0174532925;
-		lat = lat_base+100.0*data.x;
-		lng = (lng_base+100.0*data.y);///cos(rads);
+		lat = lat_base+100.0*data->x;
+		lng = (lng_base+100.0*data->y);///cos(rads);
 		
+		cout<<"x"<<'\t'<<data->x<<endl;
+		cout<<"y"<<'\t'<<data->y<<endl;
+		cout<<"z"<<'\t'<<data->z<<endl;
+
+		cout<<"lat,deg"<<'\t'<<calcudeg(lat)<<endl;
 		
+		cout<<"lat,min"<<'\t'<<calcumin(lat)<<endl;
+		
+		cout<<"lng,deg"<<'\t'<<calcudeg(lng)<<endl;
+		
+		cout<<"lng,min"<<'\t'<<calcumin(lng)<<endl;
+		
+		cout<<"h"<<'\t'<<data->z<<endl;
+
 		//printf("DspData->x_dsp:%f,DspData->y_dsp:%f,lat_change,%f,lat lng %f,%f,##,%.6f  %.6f\n",DspData->x_dsp,DspData->y_dsp,lat_change,lat,lng,lat/10000000.0,lng/10000000.0);
 		//sprintf(temp,"GPGGA,%c%c%c%c%c%c.000,%9.4f,N,%10.4f,W,1,04,0.5,M,19.7,M,,,0000",hour[0],hour[1],min[0],min[1],sec[0],sec[1],lat,lng);
 		//sprintf(temp,"GPGGA,%02ld%02ld%02ld.%03d,%02.0f%08.5f,N,%03.0f%08.5f,E,1,04,0.5,M,19.7,M,,,0000",hour_gps,min_gps,sec_gps,ms_gps,calcudeg(lat),calcumin(lat),calcudeg(lng),calcumin(lng));//未添加高度
-		sprintf(temp,"GPGGA,%02ld%02ld%02ld.%03d,%02.0f%08.5f,N,%03.0f%08.5f,E,1,04,0.5,%2.5f,M,19.7,M,,,0000",hour_gps,min_gps,sec_gps,ms_gps,calcudeg(lat),calcumin(lat),calcudeg(lng),calcumin(lng),data.z);//添加了高度
+		sprintf(temp,"GPGGA,%02ld%02ld%02ld.%03d,%02.0f%08.7f,N,%03.0f%08.7f,E,1,04,0.5,%2.5f,M,%2.5f,M,,,0000",hour_gps,min_gps,sec_gps,ms_gps,calcudeg(lat),calcumin(lat),calcudeg(lng),calcumin(lng),data->z,00.0000f);//添加了高度
+
+
+		//校验位计算
 		int ck = 0;
 		int i = 0;
 		while(temp[i]!='\0'){
 			ck^=temp[i];
 			i++;
 		}
-		sprintf(gpgga,"$%s*%2x\r\n",temp,ck);
+
+		sprintf(gpgga,"$%s*%2x\r\n",temp,ck);//信号编写完成
 		//sprintf(gpgga,"$GPGGA,092204.999,4856.3930,S,12247.4841,W,1,04,0.5,M,19.7,M,,,0000*7A\r\n");
 		int WriteNum = write(ttygps,(char *)gpgga,strlen(gpgga)); 
 		//printf("%s",gpgga);
