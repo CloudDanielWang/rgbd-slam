@@ -12,11 +12,20 @@ Data::Data()
 
 	uchar End_Flag='0';
 	//int End_Flag=0;
-	x=0;
-	y=0;
-	z=0;
+	int RGBImgSize = CameraImage.total()*CameraImage.elemSize();	//cout<<"RGBImgSize\t"<<RGBImgSize<<endl;
+	int DepthImgSize =Depth.total()*Depth.elemSize();			//cout<<"DepthImgSize\t"<<DepthImgSize<<endl;
+	int TransMatrixSize =T_c_w_mat.total()*T_c_w_mat.elemSize();		//cout<<"TransMatrixSize\t"<<TransMatrixSize<<endl;
+	int EndFlagSize = sizeof(End_Flag);					//cout<<"EndFlagSize\t"<<EndFlagSize<<endl;
+	
+	uchar TCPRGB[ RGBImgSize ];
+	uchar TCPDepth[DepthImgSize];
+	uchar TCPTransMatirx[TransMatrixSize];
+	
 
-}
+	int TCPSendDataSize=RGBImgSize+DepthImgSize;//+TransMatrixSize+EndFlagSize;
+										//cout<<"TCPSendDataSize\t"<<TCPSendDataSize<<endl;
+	uchar TCPSendData[TCPSendDataSize];					//cout<<"unchar TCPSendDataSize\t"<<sizeof(TCPSendData)<<endl;
+}	
 
 Data::~Data()
 {

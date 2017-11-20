@@ -18,7 +18,7 @@ namespace acrbslam
 }   //namespace acrbslam 
    
     pthread_mutex_t mutex_data; //互斥锁
-
+sem_t sem_TCP;
 
 
 
@@ -37,7 +37,12 @@ int main ( int argc, char** argv )
         perror("Mutex initialization failed");
         exit(EXIT_FAILURE);
     }
-
+        //初始化TCP信号量，其初值为0  
+        if((sem_init(&sem_TCP, 0, 0)) == -1)  
+        {  
+        perror("semaphore of TCP intitialization failed\n");  
+        exit(EXIT_FAILURE);  
+        } 
 
     pthread_t   thread_wifi;        void *retval_wifi;
     pthread_t   thread_vo;          void *retval_vo;
@@ -162,7 +167,7 @@ void* vo_thread(void *arg)
        // vo->addFrame ( pFrame );
         pthread_mutex_lock( &mutex_data );      //对data互斥锁住
 
-        data=vo->addFrame(pFrame);
+        data=vo->addFrame(pFrame, data);
         data.frameID=i;
         int data_empty_flag=data.CameraImage.empty();
         data.End_Flag='0';
@@ -170,7 +175,7 @@ void* vo_thread(void *arg)
         //cout<<"VO END flag"<<data.End_Flag<<endl;
 
         pthread_mutex_unlock( &mutex_data);     //对data解锁
-
+        sem_post(&sem_TCP);//信号量加1
 
         if(data_empty_flag==0)
         {
@@ -197,7 +202,7 @@ void* wifi_thread(void *arg)
 
     while(1)
     {    
-        
+        sem_wait(&sem_TCP); 
         pthread_mutex_lock(&mutex_data);        //对data互斥线程锁，以避免在对data判断期间VO线程的干扰
         int flag=data.CameraImage.empty();
         if(flag==0)
@@ -206,17 +211,53 @@ void* wifi_thread(void *arg)
         //cout<<"translation"<<translation<<endl;
        // cout<<"wifi send data begin"<<endl;
         //wifi_comu_.send_data_client_writev(data.CameraImage, data.Depth, data.T_c_w_mat);
-        wifi_comu_.send_data_client_writev(data.CameraImage, data.Depth, data.T_c_w_mat, data.End_Flag);
+        //wifi_comu_.send_data_client_writev(data.CameraImage, data.Depth, data.T_c_w_mat, data.End_Flag);
         //cout<<"wifi send data finish"<<endl;
-        cout<<"frameID:"<<data.frameID<<endl;
-        cout<<"data.End_Flag:"<<data.End_Flag<<endl;
-        //cout<<"TCW"<<data.T_c_w.matrix()<<endl;
-        if(data.End_Flag=='1') 
-        {   //data.empty();
-            //data.End_Flag=1;
-            //wifi_comu_.send_data_client_writev(data.CameraImage, data.Depth, data.T_c_w_mat, data.End_Flag);
-            break;
-        }
+        //wifi_comu_.send_data_new(data.CameraImage);
+        //wifi_comu_.send_data_new(data.Depth);
+            /**********************************************************************/
+            data.RGBImgSize = data.CameraImage.total()*data.CameraImage.elemSize();     
+            data.DepthImgSize =data.Depth.total()*data.Depth.elemSize();        
+            data.TransMatrixSize =data.T_c_w_mat.total()*data.T_c_w_mat.elemSize();     
+            data.EndFlagSize = sizeof(data.End_Flag);  
+                      
+            data.TCPSendDataSize=data.RGBImgSize+data.DepthImgSize+data.TransMatrixSize+data.EndFlagSize;                                
+/*
+            //uchar TCPRGBData[data.RGBImgSize];
+            //uchar TCPDepthData[data.DepthImgSize];
+            uchar* TCPRGBData;
+            uchar* TCPDepthData;
+            uchar* TCPTransData;
+            uchar* TCPEndFlagData;
+
+            //uchar* TCPSendData;
+            uchar TCPSendData[data.TCPSendDataSize];
+            
+
+            TCPRGBData=data.CameraImage.data;
+            TCPDepthData=data.Depth.data;
+            TCPTransData=data.T_c_w_mat.data;
+            //TCPEndFlagData=(uchar *)data.End_Flag;
+            //cout<<"TCPRGBData AND TCPDepthData 赋值完成"<<endl;
+
+            memcpy(TCPSendData,TCPRGBData,data.RGBImgSize);
+            memcpy(TCPSendData+data.RGBImgSize,TCPDepthData,data.DepthImgSize);
+            memcpy(TCPSendData+data.RGBImgSize+data.DepthImgSize,TCPTransData,data.TransMatrixSize);
+            //memcpy(TCPSendData+data.RGBImgSize+data.DepthImgSize+data.TransMatrixSize,TCPEndFlagData,data.EndFlagSize);
+            TCPSendData[data.RGBImgSize+data.DepthImgSize+data.TransMatrixSize]=data.End_Flag;
+   
+            //cout<<"TCPSendData 赋值完成"<<endl;
+
+            wifi_comu_.SendTCPDataClient((uchar *)TCPSendData, data.TCPSendDataSize);
+            */
+            wifi_comu_.SendTCPDataClient(data);
+            /*******************************************************************************/
+            cout<<"frameID:\t"<<data.frameID<<endl;
+            cout<<"End_Flag:\t"<<data.End_Flag<<endl;
+            cout<<"TCW\n"<<data.T_c_w.matrix()<<endl;
+            if(data.End_Flag=='1') 
+                break;
+ 
             
 
        // cv::imshow("wifi_send thread frame",data.CameraImage);

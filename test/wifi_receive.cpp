@@ -9,16 +9,15 @@
 
 #include "acrbslam/viz.h"
 
+acrbslam::Data data;
+
 namespace acrbslam
 {
 void *wifi_recv(void *arg);
 void *viz_thread(void *arg);
 void *pointcloud_thread(void *arg);
-
 }//namespace acrbslam
 
-
-acrbslam::Data data;	//数组初始化；
 sem_t sem_viz;
 sem_t sem_cloud;
 
@@ -39,7 +38,7 @@ int main(int argc, char** argv)
       	perror("semaphore of VIZ  intitialization failed\n");  
        	exit(EXIT_FAILURE);  
     	} 
-	//初始化VIZ信号量，其初值为0  
+	//初始化Cloud信号量，其初值为0  
     	if((sem_init(&sem_cloud, 0, 0)) == -1)  
     	{  
       	perror("semaphore of Cloud intitialization failed\n");  
@@ -53,11 +52,15 @@ int main(int argc, char** argv)
 
 
 	int ret_wifi=pthread_create(&thread_wifi_recv,NULL,acrbslam::wifi_recv,NULL);
-	//int ret_viz=pthread_create(&thread_viz_show, NULL,acrbslam::viz_thread, NULL);
-	//int ret_pointcloud=pthread_create(&thread_pointcloud,NULL,acrbslam::pointcloud_thread,NULL);
+	int ret_viz=pthread_create(&thread_viz_show, NULL,acrbslam::viz_thread, NULL);
+	int ret_pointcloud=pthread_create(&thread_pointcloud,NULL,acrbslam::pointcloud_thread,NULL);
 
-	while(1);
+	while(1){
+		if (data.End_Flag=='1') break;
+	}
 
+	cout<<"Main Function End"<<endl;
+	
 	pthread_join(thread_wifi_recv,&retval_wifi_recv);
 	pthread_join(thread_viz_show,&retval_viz_show);
 	pthread_join(thread_pointcloud,&retval_pointcloud);
@@ -84,6 +87,7 @@ void *viz_thread(void *arg)
 
 		if(data.End_Flag=='1') break;
 	}
+	cout<<"Close the VIZ Thread"<<endl;
 }
 
 
@@ -93,32 +97,44 @@ void *wifi_recv(void *arg)
 	wifi_comu wifi_comu_;
     	wifi_comu_.wifi_init_pc();	 
     	viz::Viz3d viz= viz_initialize();
-    	int receive_count=0;
+    	//int receive_count=0;
+    	///////////////******************************************************
+    	data.CameraImage=Mat::zeros(480,640,CV_8UC3);	
+	data.Depth=Mat::zeros(480,640,CV_16UC1);
+	data.T_c_w_mat=Mat::zeros(4,4,CV_32F);
+
+	data.RGBImgSize = data.CameraImage.total()*data.CameraImage.elemSize();		//cout<<"RGBImgSize\t"<<RGBImgSize<<endl;
+	data.DepthImgSize =data.Depth.total()*data.Depth.elemSize();				//cout<<"DepthImgSize\t"<<DepthImgSize<<endl;
+	data.TransMatrixSize =data.T_c_w_mat.total()*data.T_c_w_mat.elemSize();		//cout<<"TransMatrixSize\t"<<TransMatrixSize<<endl;
+	data.EndFlagSize = sizeof(data.End_Flag);						//cout<<"EndFlagSize\t"<<EndFlagSize<<endl;
+
+	data.TCPSendDataSize=data.RGBImgSize+data.DepthImgSize+data.TransMatrixSize+data.EndFlagSize;
+					
+    	///////////////****************************************************************
+
     	
 	while(1)
 	{	
-	//CameraRGBimage=wifi_comu_.receive_data_pc(CameraRGBimage);	//该函数使用正常，不错乱
+	//data.CameraImage=wifi_comu_.receive_data_pc(data.CameraImage);	//该函数使用正常，不错乱
 	//if(wifi_comu_.receive_data_server_readv(&data.CameraImage, &data.Depth, &data.T_c_w_mat))
-	if(wifi_comu_.receive_data_server_readv(&data.CameraImage, &data.Depth, &data.T_c_w_mat, &data.End_Flag))
-	{	
-		sem_post(&sem_viz);//信号量加1
-		sem_post(&sem_cloud);	//点云线程信号量加1
+	//if(wifi_comu_.receive_data_server_readv(&data.CameraImage, &data.Depth, &data.T_c_w_mat, &data.End_Flag))
+
+	data=wifi_comu_.ReceiveTCPDataServer(data);
+		
+	sem_post(&sem_viz);//信号量加1
+	sem_post(&sem_cloud);	//点云线程信号量加1
 
 		//receive_count++;
 		//cout<<"receive_count:"<<receive_count<<endl;
 
-		 cout<<"data.End_Flag:"<<data.End_Flag<<endl;
-
-		//imshow("WIFI RGBData",data.CameraImage);
-		//imshow("WIFI DepthData", data.Depth);
-		//waitKey(10);
-		//data.T_c_w=data.toSE3(data.T_c_w_mat);
-		//cout<<"TCW"<<data.T_c_w.matrix()<<endl;
+	//imshow("WIFI RGB Data",data.CameraImage);
+	//waitKey(1);
+	//imshow("WIFI DepthData", data.Depth);
+	//waitKey(1);
+	data.T_c_w=data.toSE3(data.T_c_w_mat);
+	cout<<"TCW\n"<<data.T_c_w.matrix()<<endl;
+	cout<<"End_Flag\t"<<data.End_Flag<<endl;
 		
-		if(data.End_Flag=='1') break;
-		//else
-		//continue;
-	}
 	if(data.End_Flag=='1') break;
 
 	}
@@ -142,6 +158,7 @@ void *pointcloud_thread(void *arg)
 
         		//判断完成接收，退出循环，保存点云数据的语句：
         		if(data.End_Flag=='1') break;
+        		//if (data->End_Flag!='0') break;
 
 	 }
 	cout<<"点云大小为："<<pointCloud_all->size()<<"个点."<<endl;
@@ -154,9 +171,6 @@ void *pointcloud_thread(void *arg)
         	 exit(1);
 
 }
-
-
-   
 
 
 

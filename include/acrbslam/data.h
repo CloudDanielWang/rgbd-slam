@@ -12,11 +12,23 @@ namespace acrbslam
 class Data:public Converter
 {
 public:
+    	typedef shared_ptr<Data> Ptr;		//模仿VO类进行指针的设定
 
 	int frameID;
 
 	uchar  End_Flag;	//结束标志位
 	//int End_Flag;
+	uchar TCPRGB[];
+	uchar TCPDepth[];
+	uchar TCPTransMatirx[];
+	uchar TCPSendData[];
+
+
+	int RGBImgSize ;
+	int DepthImgSize ;
+	int TransMatrixSize ;
+	int EndFlagSize ;
+	int TCPSendDataSize;
 
 	Mat CameraImage;	
 	Mat Depth;
@@ -31,7 +43,7 @@ public:
 
 
 
-
+   // typedef shared_ptr<Data> Ptr;
 
 
 public:

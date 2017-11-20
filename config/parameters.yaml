@@ -28,9 +28,10 @@ scan_frame_num: 200
 #WIFI Parameters
 SERVER_PORT: 6000
 CLIENT_PORT: 7000
+#SERVER_IP: "192.168.1.102"
+#CLIENT_IP: "192.168.1.103"
 SERVER_IP: "127.0.0.1"
 CLIENT_IP: "127.0.0.1"
-
 #GPS Parameters
 gps_com_addr: "ttyUSB1"
 
