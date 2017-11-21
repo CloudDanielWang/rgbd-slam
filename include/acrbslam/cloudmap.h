@@ -6,10 +6,11 @@
 #include "acrbslam/frame.h"
 
      // 定义点云使用的格式：这里用的是XYZRGB
-    typedef pcl::PointXYZRGB PointT; 
+   //typedef pcl::PointXYZRGB PointT; 
+    typedef pcl::PointXYZRGBA PointT; 		//test for octomap
     typedef pcl::PointCloud<PointT> pointCloud;
 
-    pointCloud::Ptr createPointCloud( acrbslam::Frame::Ptr frame, pointCloud::Ptr orginal_cloud );
+    //pointCloud::Ptr createPointCloud( acrbslam::Frame::Ptr frame, pointCloud::Ptr orginal_cloud );
     //pointcloud::Ptr joinPointCloud( pointcloud::Ptr original, acrbslam::FRAME& newFrame, Eigen::Isometry3d T ) ;
 
 

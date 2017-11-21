@@ -26,6 +26,7 @@ add_library(wifi wifi.cpp
     converter.cpp
     data.cpp
     viz.cpp
+    octomap_mapping.cpp
 )
 
 

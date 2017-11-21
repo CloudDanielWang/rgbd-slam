@@ -149,6 +149,7 @@ Data wifi_comu::ReceiveTCPDataServer( Data data)
 }
 
 
+
 void wifi_comu::SendTCPDataClient(Data data)
 {
 
@@ -419,7 +420,7 @@ void wifi_comu::send_data(char *data,unsigned int num)
 
 
 //wifi发送新函数
-///*
+/*
 void wifi_comu::send_data_new(Mat frame)
 {
 	int imgSize = frame.total()*frame.elemSize();
@@ -432,7 +433,7 @@ void wifi_comu::send_data_new(Mat frame)
 	return;
 		
 }
-
+/*
 //wifi server端接收新函数
 cv::Mat  wifi_comu::receive_data_pc(Mat frame)
 {

@@ -8,6 +8,7 @@
 #include "acrbslam/data.h"
 
 #include "acrbslam/viz.h"
+#include "acrbslam/octomap_mapping.h"
 
 acrbslam::Data data;
 
@@ -97,21 +98,8 @@ void *wifi_recv(void *arg)
 	wifi_comu wifi_comu_;
     	wifi_comu_.wifi_init_pc();	 
     	viz::Viz3d viz= viz_initialize();
+
     	//int receive_count=0;
-    	///////////////******************************************************
-    	data.CameraImage=Mat::zeros(480,640,CV_8UC3);	
-	data.Depth=Mat::zeros(480,640,CV_16UC1);
-	data.T_c_w_mat=Mat::zeros(4,4,CV_32F);
-
-	data.RGBImgSize = data.CameraImage.total()*data.CameraImage.elemSize();		//cout<<"RGBImgSize\t"<<RGBImgSize<<endl;
-	data.DepthImgSize =data.Depth.total()*data.Depth.elemSize();				//cout<<"DepthImgSize\t"<<DepthImgSize<<endl;
-	data.TransMatrixSize =data.T_c_w_mat.total()*data.T_c_w_mat.elemSize();		//cout<<"TransMatrixSize\t"<<TransMatrixSize<<endl;
-	data.EndFlagSize = sizeof(data.End_Flag);						//cout<<"EndFlagSize\t"<<EndFlagSize<<endl;
-
-	data.TCPSendDataSize=data.RGBImgSize+data.DepthImgSize+data.TransMatrixSize+data.EndFlagSize;
-					
-    	///////////////****************************************************************
-
     	
 	while(1)
 	{	
@@ -124,11 +112,11 @@ void *wifi_recv(void *arg)
 	sem_post(&sem_viz);//信号量加1
 	sem_post(&sem_cloud);	//点云线程信号量加1
 
-		//receive_count++;
-		//cout<<"receive_count:"<<receive_count<<endl;
+	//receive_count++;
+	//cout<<"receive_count:"<<receive_count<<endl;
 
-	//imshow("WIFI RGB Data",data.CameraImage);
-	//waitKey(1);
+	imshow("WIFI RGB Data",data.CameraImage);
+	waitKey(1);
 	//imshow("WIFI DepthData", data.Depth);
 	//waitKey(1);
 	data.T_c_w=data.toSE3(data.T_c_w_mat);
@@ -137,7 +125,10 @@ void *wifi_recv(void *arg)
 		
 	if(data.End_Flag=='1') break;
 
-	}
+	};
+
+	destroyAllWindows();
+	cout<<"Close the AllWindows"<<endl;
 	close(wifi_comu_.server_sock);
 	cout<<"Close the Wifi Receive Thread"<<endl;
 }
@@ -145,28 +136,40 @@ void *wifi_recv(void *arg)
 void *pointcloud_thread(void *arg)
 {
 	 pointCloud::Ptr pointCloud_all( new pointCloud ); //存放所有点云
-   	 
-   	 //sleep(3); 
+	//sleep(3); 
    	// pcl::visualization::CloudViewer viewer("cloudmap viewer");	//在线显示，不推荐开启
+
+   	 octomap::ColorOcTree *OcColorTree = new octomap::ColorOcTree(0.05) ;
+
 
 	 while(1)
 	 {
 	 	sem_wait(&sem_cloud);
 		//draw cloudmap
-        		pointCloud_all=createPointCloud(data, pointCloud_all);	
+        		pointCloud_all=createPointCloud(data, pointCloud_all);
         		// viewer.showCloud( pointCloud_all );	 	//在线显示，不推荐开启
+
+        		//Octomap 
+        		OcColorTree=PointCloudMap2Octomap(pointCloud_all,data,OcColorTree);
+
 
         		//判断完成接收，退出循环，保存点云数据的语句：
         		if(data.End_Flag=='1') break;
-        		//if (data->End_Flag!='0') break;
 
 	 }
 	cout<<"点云大小为："<<pointCloud_all->size()<<"个点."<<endl;
-	cout<<"Saving..."<<endl;
+	cout<<"Saving Point Cloud Map..."<<endl;
         	 pcl::io::savePCDFileBinary( "data/result.pcd", *pointCloud_all );
         	 cout<<"Point Cloud Saving Finished"<<endl;
          	// while( !viewer.wasStopped() )
          	//{}
+
+        	// 更新OctoMap中间节点的占据信息并写入磁盘
+	OcColorTree->updateInnerOccupancy();
+	cout<<"Saving Octomap ... "<<endl;
+	OcColorTree->write( "data/octomap.ot" );
+        	cout<<"Octomap Saving Finished"<<endl;
+
         	 sleep(1);
         	 exit(1);
 

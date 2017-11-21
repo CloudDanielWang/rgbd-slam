@@ -17,7 +17,6 @@ public:
 	int frameID;
 
 	uchar  End_Flag;	//结束标志位
-	//int End_Flag;
 	uchar TCPRGB[];
 	uchar TCPDepth[];
 	uchar TCPTransMatirx[];
@@ -35,9 +34,9 @@ public:
 	Mat T_c_w_mat;		
 
 	SE3 T_c_w;
-	Eigen::Isometry3d transfomation;
-	Eigen::Matrix3d rotation_estimate;
-	Eigen::Vector3d translation_estimate;
+	Eigen::Isometry3d EigenTransfomation;
+	Eigen::Matrix3d EigenRotationEstimate;
+	Eigen::Vector3d EigenTranslationEstimate;
 
 	float x,y,z;
 
@@ -51,6 +50,7 @@ public:
 	~Data();
 
 	void inputData(Frame::Ptr frame);		//将frame中的参数保存在data类中
+	void SE32Eigen();				//将SE3格式的矩阵转化为Eigen
 	Data empty();
 
 //protected:
